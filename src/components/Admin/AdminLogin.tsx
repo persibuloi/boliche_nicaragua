@@ -113,15 +113,6 @@ export function AdminLogin({ onClose }: AdminLoginProps) {
             {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </button>
         </form>
-
-        {/* Demo Credentials Info */}
-        <div className="mt-8 p-4 bg-bowling-blue-50 rounded-lg">
-          <p className="text-sm text-bowling-blue-800 text-center">
-            <strong>Credenciales de prueba:</strong><br />
-            Email: admin@boliche-nicaragua.com<br />
-            Contraseña: admin123
-          </p>
-        </div>
       </div>
     </div>
   )

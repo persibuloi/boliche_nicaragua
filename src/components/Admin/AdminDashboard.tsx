@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAdmin } from '@/contexts/AdminContext'
 import { supabase, YoutubeVideo, Podcast, ContactForm } from '@/lib/supabase'
+import { UserManagement } from './UserManagement'
 import { 
   LogOut, 
   Plus, 
@@ -14,7 +15,8 @@ import {
   Mail,
   CheckCircle,
   ExternalLink,
-  X
+  X,
+  Users
 } from 'lucide-react'
 
 export function AdminDashboard() {
@@ -44,10 +46,17 @@ export function AdminDashboard() {
   const [uploadProgress, setUploadProgress] = useState(0)
 
   useEffect(() => {
+    // Redirigir editores si intentan acceder a la pestaña de usuarios
+    if (activeTab === 'users' && adminData?.role !== 'admin') {
+      setActiveTab('videos')
+      return
+    }
+    
     if (activeTab === 'videos') fetchVideos()
     else if (activeTab === 'podcasts') fetchPodcasts()
     else if (activeTab === 'contacts') fetchContacts()
-  }, [activeTab])
+    // No need to fetch for users tab as UserManagement handles its own data
+  }, [activeTab, adminData?.role])
 
   const fetchVideos = async () => {
     try {
@@ -257,7 +266,8 @@ export function AdminDashboard() {
             {[
               { id: 'videos', label: 'Videos de YouTube', icon: Youtube },
               { id: 'podcasts', label: 'Podcasts', icon: Mic },
-              { id: 'contacts', label: 'Formularios de Contacto', icon: Mail }
+              { id: 'contacts', label: 'Formularios de Contacto', icon: Mail },
+              ...(adminData?.role === 'admin' ? [{ id: 'users', label: 'Gestión de Usuarios', icon: Users }] : [])
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -591,6 +601,11 @@ export function AdminDashboard() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Users Tab */}
+        {activeTab === 'users' && adminData?.role === 'admin' && (
+          <UserManagement currentUser={adminData} />
         )}
       </div>
     </div>

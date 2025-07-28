@@ -6,9 +6,8 @@ import { HeroSection } from '@/components/Sections/HeroSection'
 import { VideosSection } from '@/components/Sections/VideosSection'
 import { StatsSection } from '@/components/Sections/StatsSection'
 import { StatsMenu } from './components/Sections/StatsMenu'
-
-
-
+import { HandicapCalculator } from '@/components/Sections/HandicapCalculator'
+import { BowlingSimulator } from '@/components/Sections/BowlingSimulator'
 import { ContactSection } from '@/components/Sections/ContactSection'
 import { PodcastSection } from '@/components/Sections/PodcastSection'
 import { AdminLogin } from '@/components/Admin/AdminLogin'
@@ -20,6 +19,11 @@ function AppContent() {
   const [currentSection, setCurrentSection] = useState('inicio')
   const [showAdmin, setShowAdmin] = useState(false)
   const { isAdmin, loading } = useAdmin()
+
+  const handleSectionChange = (section: string) => {
+    console.log(`Cambiando sección de '${currentSection}' a '${section}'`)
+    setCurrentSection(section)
+  }
 
   // Handle admin access
   if (showAdmin) {
@@ -38,7 +42,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <Header currentSection={currentSection} onSectionChange={setCurrentSection} />
+      <Header currentSection={currentSection} onSectionChange={handleSectionChange} />
       
       {/* Admin Access Button */}
       <button
@@ -51,7 +55,7 @@ function AppContent() {
 
       {/* Main Content */}
       <main className="flex-1">
-        {currentSection === 'inicio' && <HeroSection />}
+        {currentSection === 'inicio' && <HeroSection onSectionChange={handleSectionChange} />}
         {currentSection === 'videos' && <VideosSection />}
         {currentSection === 'estadisticas' && <StatsSection />}
         {currentSection === 'menu-estadisticas' && (
@@ -59,12 +63,14 @@ function AppContent() {
             <StatsMenu />
           </div>
         )}
+        {currentSection === 'calculadora-handicap' && <HandicapCalculator />}
+        {currentSection === 'simulador-boliche' && <BowlingSimulator />}
         {currentSection === 'contacto' && <ContactSection />}
         {currentSection === 'podcast' && <PodcastSection />}
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer onSectionChange={handleSectionChange} />
     </div>
   )
 }

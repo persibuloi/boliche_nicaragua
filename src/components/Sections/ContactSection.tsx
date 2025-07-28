@@ -235,37 +235,7 @@ export function ContactSection() {
               </div>
             </div>
 
-            {/* Business Hours */}
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-bowling-black-900 mb-6 flex items-center">
-                <Clock className="w-6 h-6 mr-2 text-bowling-orange-500" />
-                Horarios de atención
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="font-medium text-bowling-black-700">Lunes - Viernes</span>
-                  <span className="text-gray-600">9:00 AM - 10:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-bowling-black-700">Sábados</span>
-                  <span className="text-gray-600">10:00 AM - 11:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-bowling-black-700">Domingos</span>
-                  <span className="text-gray-600">12:00 PM - 9:00 PM</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Tournament Info */}
-            <div className="bg-gradient-to-br from-bowling-orange-500 to-bowling-blue-500 rounded-xl shadow-lg p-8 text-white">
-              <h3 className="text-2xl font-bold mb-4">🏆 Próximo Torneo</h3>
-              <p className="mb-4">¡Únete a nuestro próximo torneo semanal! Perfecto para jugadores de todos los niveles.</p>
-              <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
-                <p className="font-semibold">📅 Todos los sábados a las 2:00 PM</p>
-                <p className="text-sm mt-1">Inscripciones abiertas hasta el viernes</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

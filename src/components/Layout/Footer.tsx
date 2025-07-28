@@ -1,7 +1,11 @@
 import React from 'react'
 import { Facebook, Instagram, Youtube, Mail, Phone, MapPin, CircleDot } from 'lucide-react'
 
-export function Footer() {
+interface FooterProps {
+  onSectionChange?: (section: string) => void
+}
+
+export function Footer({ onSectionChange }: FooterProps) {
   return (
     <footer className="bg-bowling-black-900 text-white mt-auto">
       <div className="container mx-auto px-4 py-12">
@@ -31,7 +35,7 @@ export function Footer() {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="https://instagram.com/boliche-nicaragua"
+                href="https://instagram.com/bolichenica"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center hover:from-pink-600 hover:to-purple-700 transition-colors"
@@ -72,21 +76,36 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-bowling-orange-500">Enlaces Rápidos</h4>
             <div className="space-y-2">
-              <a href="#inicio" className="block text-gray-300 hover:text-bowling-orange-500 transition-colors">
+              <button 
+                onClick={() => onSectionChange?.('inicio')}
+                className="block text-left text-gray-300 hover:text-bowling-orange-500 transition-colors cursor-pointer"
+              >
                 Inicio
-              </a>
-              <a href="#videos" className="block text-gray-300 hover:text-bowling-orange-500 transition-colors">
+              </button>
+              <button 
+                onClick={() => onSectionChange?.('videos')}
+                className="block text-left text-gray-300 hover:text-bowling-orange-500 transition-colors cursor-pointer"
+              >
                 Videos
-              </a>
-              <a href="#estadisticas" className="block text-gray-300 hover:text-bowling-orange-500 transition-colors">
+              </button>
+              <button 
+                onClick={() => onSectionChange?.('estadisticas')}
+                className="block text-left text-gray-300 hover:text-bowling-orange-500 transition-colors cursor-pointer"
+              >
                 Estadísticas
-              </a>
-              <a href="#contacto" className="block text-gray-300 hover:text-bowling-orange-500 transition-colors">
+              </button>
+              <button 
+                onClick={() => onSectionChange?.('contacto')}
+                className="block text-left text-gray-300 hover:text-bowling-orange-500 transition-colors cursor-pointer"
+              >
                 Contacto
-              </a>
-              <a href="#podcast" className="block text-gray-300 hover:text-bowling-orange-500 transition-colors">
+              </button>
+              <button 
+                onClick={() => onSectionChange?.('podcast')}
+                className="block text-left text-gray-300 hover:text-bowling-orange-500 transition-colors cursor-pointer"
+              >
                 Podcast
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -98,7 +117,7 @@ export function Footer() {
               &copy; {new Date().getFullYear()} Boliche Nicaragua. Todos los derechos reservados.
             </p>
             <p className="text-gray-400 text-sm mt-2 md:mt-0">
-              Desarrollado con ❤️ para la comunidad de bowling
+              Desarrollado por Marco Vasquez para la comunidad de boliche
             </p>
           </div>
         </div>
