@@ -10,6 +10,7 @@ import { HandicapCalculator } from '@/components/Sections/HandicapCalculator'
 import { BowlingSimulator } from '@/components/Sections/BowlingSimulator'
 import { ContactSection } from '@/components/Sections/ContactSection'
 import { PodcastSection } from '@/components/Sections/PodcastSection'
+import { TournamentsAirtableSection } from '@/components/Sections/TournamentsAirtableSection'
 import { AdminLogin } from '@/components/Admin/AdminLogin'
 import { AdminDashboard } from '@/components/Admin/AdminDashboard'
 import { Settings } from 'lucide-react'
@@ -57,6 +58,7 @@ function AppContent() {
       <main className="flex-1">
         {currentSection === 'inicio' && <HeroSection onSectionChange={handleSectionChange} />}
         {currentSection === 'videos' && <VideosSection />}
+        {currentSection === 'torneos' && <TournamentsAirtableSection />}
         {currentSection === 'estadisticas' && <StatsSection />}
         {currentSection === 'menu-estadisticas' && (
           <div className="min-h-screen bg-gradient-to-br from-bowling-blue-50 to-bowling-orange-50">

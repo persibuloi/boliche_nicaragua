@@ -169,6 +169,66 @@ export function useAirtable(tableName: string, options: UseAirtableOptions = {})
     }
   }
 
+  const uploadAttachment = async (file: File): Promise<any> => {
+    try {
+      console.log('Subiendo archivo a imgbb con API key:', file.name, 'Tamaño:', (file.size / 1024 / 1024).toFixed(2), 'MB')
+      
+      // Convertir archivo a base64 para imgbb
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          // Remover el prefijo "data:image/...;base64,"
+          const base64Data = result.split(',')[1]
+          resolve(base64Data)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      
+      // Usar imgbb.com con tu API key real
+      const formData = new FormData()
+      formData.append('image', base64)
+      
+      const response = await fetch('https://api.imgbb.com/1/upload?key=e19f238a021e8661c27ea821351813f7', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Error response from imgbb:', errorText)
+        throw new Error(`Error uploading to imgbb: ${response.statusText}`)
+      }
+      
+      const result = await response.json()
+      console.log('Respuesta de imgbb:', result)
+      
+      // Extraer la URL del archivo
+      const fileUrl = result.data?.url
+      
+      if (!fileUrl) {
+        console.error('Respuesta completa de imgbb:', result)
+        throw new Error('No se pudo obtener la URL del archivo de imgbb')
+      }
+      
+      console.log('URL final para Airtable:', fileUrl)
+      
+      // Crear el objeto attachment para Airtable
+      const attachment = {
+        url: fileUrl,
+        filename: file.name
+      }
+
+      console.log('Attachment creado con URL:', attachment)
+      return attachment
+    } catch (err) {
+      console.error('Error uploading attachment:', err)
+      // Fallback: crear torneo sin foto si falla la subida
+      throw new Error(`Error subiendo ${file.name}: ${err.message}`)
+    }
+  }
+
   return { 
     data, 
     loading, 
@@ -176,6 +236,7 @@ export function useAirtable(tableName: string, options: UseAirtableOptions = {})
     refetch: () => fetchData(), 
     createRecord, 
     updateRecord, 
-    deleteRecord 
+    deleteRecord,
+    uploadAttachment
   }
 }

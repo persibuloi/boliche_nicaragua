@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAdmin } from '@/contexts/AdminContext'
 import { supabase, YoutubeVideo, Podcast, ContactForm } from '@/lib/supabase'
 import { UserManagement } from './UserManagement'
+import { TournamentAirtableManagement } from './TournamentAirtableManagement'
 import { 
   LogOut, 
   Plus, 
@@ -16,7 +17,8 @@ import {
   CheckCircle,
   ExternalLink,
   X,
-  Users
+  Users,
+  Trophy
 } from 'lucide-react'
 
 export function AdminDashboard() {
@@ -266,6 +268,7 @@ export function AdminDashboard() {
             {[
               { id: 'videos', label: 'Videos de YouTube', icon: Youtube },
               { id: 'podcasts', label: 'Podcasts', icon: Mic },
+              { id: 'tournaments', label: 'Gestión de Torneos', icon: Trophy },
               { id: 'contacts', label: 'Formularios de Contacto', icon: Mail },
               ...(adminData?.role === 'admin' ? [{ id: 'users', label: 'Gestión de Usuarios', icon: Users }] : [])
             ].map(({ id, label, icon: Icon }) => (
@@ -601,6 +604,11 @@ export function AdminDashboard() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Tournaments Tab */}
+        {activeTab === 'tournaments' && (
+          <TournamentAirtableManagement />
         )}
 
         {/* Users Tab */}

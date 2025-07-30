@@ -60,3 +60,20 @@ export interface AdminUser {
   created_at: string
   updated_at: string
 }
+
+export interface Tournament {
+  id: number
+  title: string
+  date: string
+  location: string
+  description: string
+  winner: string
+  runner_up: string
+  participants: number
+  prize: string
+  category: 'profesional' | 'amateur' | 'juvenil' | 'veteranos'
+  images: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
