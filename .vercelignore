@@ -4,6 +4,10 @@
 **/*Tournament*.tsx.bak
 **/*Tournament*.tsx.old
 
+# Forzar exclusión específica para Vercel
+src/components/Admin/TournamentManagement.tsx
+src/components/Sections/TournamentsSection.tsx
+
 # Ignorar archivos de desarrollo
 *.log
 .env.local
