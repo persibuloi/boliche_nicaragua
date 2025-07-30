@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/TournamentManagement.tsx",
+    "**/TournamentsSection.tsx"
+  ],
+  "include": [
+    "src/**/*"
+  ]
+}

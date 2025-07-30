@@ -1,0 +1,16 @@
+# Ignorar archivos problemáticos que puedan estar en caché
+**/TournamentManagement.tsx
+**/TournamentsSection.tsx
+**/*Tournament*.tsx.bak
+**/*Tournament*.tsx.old
+
+# Ignorar archivos de desarrollo
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignorar archivos de sistema
+.DS_Store
+Thumbs.db
