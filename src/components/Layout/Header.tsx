@@ -10,7 +10,8 @@ import {
   BarChart3, 
   Mail, 
   Mic,
-  Calculator
+  Calculator,
+  Eye
 } from 'lucide-react'
 
 interface HeaderProps {
@@ -24,7 +25,8 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
   const navigation = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'videos', label: 'Videos', icon: Play },
-    { id: 'torneos', label: 'Torneos', icon: Trophy },
+    { id: 'torneos', label: 'Fotos Torneos', icon: Trophy },
+    { id: 'menu-estadisticas', label: 'Ver Torneos', icon: Eye },
     { id: 'calculadora-handicap', label: 'Calculadora', icon: Calculator },
     { id: 'estadisticas', label: 'Estadísticas', icon: BarChart3 },
     { id: 'contacto', label: 'Contacto', icon: Mail },

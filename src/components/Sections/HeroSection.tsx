@@ -1,5 +1,5 @@
 import React from 'react'
-import { Play, Users, Trophy, Target } from 'lucide-react'
+import { Play, Users, Trophy, Target, Camera, Calculator, Mic } from 'lucide-react'
 
 interface HeroSectionProps {
   onSectionChange?: (section: string) => void
@@ -66,38 +66,49 @@ export function HeroSection({ onSectionChange }: HeroSectionProps) {
           </div>
 
           {/* Feature cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             <button 
-              onClick={() => onSectionChange?.('contacto')}
+              onClick={() => onSectionChange?.('videos')}
+              className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-200 transform hover:scale-105 cursor-pointer"
+            >
+              <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Play className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Videos</h3>
+              <p className="text-gray-300 text-sm">Contenido multimedia de la comunidad de boliche</p>
+            </button>
+
+            <button 
+              onClick={() => onSectionChange?.('torneos')}
               className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-200 transform hover:scale-105 cursor-pointer"
             >
               <div className="w-12 h-12 bg-bowling-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-white" />
+                <Camera className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Comunidad Activa</h3>
-              <p className="text-gray-300 text-sm">Más de 200 jugadores registrados en nuestra comunidad</p>
+              <h3 className="text-lg font-semibold mb-2">Fotos Torneos</h3>
+              <p className="text-gray-300 text-sm">Galería completa de fotos de todos nuestros torneos</p>
             </button>
-
-            <div 
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer transform hover:scale-105 duration-200"
-              onClick={() => onSectionChange?.('simulador-boliche')}
-            >
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center mb-4">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-bowling-black-900 mb-2">Simulador de Boliche</h3>
-              <p className="text-gray-600">Simula partidas completas de boliche para 4 jugadores con puntuación oficial.</p>
-            </div>
 
             <button 
               onClick={() => onSectionChange?.('calculadora-handicap')}
               className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-200 transform hover:scale-105 cursor-pointer"
             >
               <div className="w-12 h-12 bg-gradient-to-r from-bowling-orange-500 to-bowling-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="w-6 h-6 text-white" />
+                <Calculator className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Calculadora de Handicap</h3>
+              <h3 className="text-lg font-semibold mb-2">Calculadora</h3>
               <p className="text-gray-300 text-sm">Calcula tu handicap personalizado con parámetros ajustables</p>
+            </button>
+
+            <button 
+              onClick={() => onSectionChange?.('podcast')}
+              className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-200 transform hover:scale-105 cursor-pointer"
+            >
+              <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mic className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Podcast</h3>
+              <p className="text-gray-300 text-sm">Escucha nuestro contenido de audio sobre boliche</p>
             </button>
           </div>
         </div>

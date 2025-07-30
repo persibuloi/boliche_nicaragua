@@ -9,7 +9,10 @@ import {
   FileText,
   Download,
   Search,
-  X
+  X,
+  User,
+  Target,
+  TrendingUp
 } from 'lucide-react'
 
 // Configuración de tablas disponibles
@@ -23,7 +26,7 @@ const AVAILABLE_TABLES = [
   },
   { 
     id: 'Jugador', 
-    name: 'Jugador', 
+    name: 'Promedios Jugador', 
     icon: Trophy, 
     description: 'Información detallada de jugadores con handicap y estadísticas',
     color: 'from-green-500 to-green-600'
@@ -47,6 +50,7 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
     maxRecords: 100
   })
   const [searchFilter, setSearchFilter] = useState('')
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null)
 
   const IconComponent = tableConfig.icon
 
@@ -55,6 +59,14 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
     if (!searchFilter.trim()) return true
     const searchTerm = searchFilter.toLowerCase()
     const playerName = (record.fields.Jugador || record.fields.Name || '').toLowerCase()
+    return playerName.includes(searchTerm)
+  })
+
+  // Filtrar datos específicamente para tabla Jugador
+  const filteredJugadorData = data.filter(record => {
+    if (!searchFilter.trim()) return true
+    const searchTerm = searchFilter.toLowerCase()
+    const playerName = (record.fields.Name || '').toLowerCase()
     return playerName.includes(searchTerm)
   })
 
@@ -114,64 +126,149 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
   )
 
   // Renderizado específico para Jugador
-  const renderJugador = () => (
-    <div className="space-y-3">
-      {data.slice(0, 20).map((record, index) => (
-        <div key={record.id} className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                {record.fields.Rank || index + 1}
-              </div>
-              <div>
-                <p className="font-semibold text-bowling-black-900">
-                  {record.fields.Name || 'Sin nombre'}
-                </p>
-                <p className="text-sm text-gray-600">
-                  HDC: {record.fields.hdc || 0} | Pista: {record.fields.Pista || 'N/A'}
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-lg font-bold text-bowling-orange-500">
-                {record.fields.Promedio || 0}
-              </p>
-              <p className="text-xs text-gray-500">
-                Prom HDC: {record.fields.PromedioHDC || 0}
-              </p>
-            </div>
+  const renderJugador = () => {
+    // Ordenar por promedio descendente usando datos filtrados
+    const sortedData = [...filteredJugadorData].sort((a, b) => {
+      const promedioA = parseFloat(a.fields.Promedio) || 0
+      const promedioB = parseFloat(b.fields.Promedio) || 0
+      return promedioB - promedioA
+    })
+
+    return (
+      <div className="space-y-3">
+        {/* Barra de búsqueda para Jugador */}
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Buscar jugador por nombre..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-orange-500 focus:border-transparent"
+            />
+            {searchFilter && (
+              <button
+                onClick={() => setSearchFilter('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
           </div>
-          
-          {/* Líneas de juego */}
-          <div className="grid grid-cols-4 gap-2 mb-2">
-            <div className="text-center p-2 bg-white rounded">
-              <p className="text-xs text-gray-500">L1</p>
-              <p className="font-semibold">{record.fields.L1 || 0}</p>
-            </div>
-            <div className="text-center p-2 bg-white rounded">
-              <p className="text-xs text-gray-500">L2</p>
-              <p className="font-semibold">{record.fields.L2 || 0}</p>
-            </div>
-            <div className="text-center p-2 bg-white rounded">
-              <p className="text-xs text-gray-500">L3</p>
-              <p className="font-semibold">{record.fields.L3 || 0}</p>
-            </div>
-            <div className="text-center p-2 bg-white rounded">
-              <p className="text-xs text-gray-500">L4</p>
-              <p className="font-semibold">{record.fields.L4 || 0}</p>
-            </div>
-          </div>
-          
-          {/* Estadísticas adicionales */}
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Min: {record.fields.Minimo || 0}</span>
-            <span>Max: {record.fields.Maximo || 0}</span>
-            <span>Total: {record.fields['Total Pines'] || 0}</span>
-          </div>
+          {searchFilter && (
+            <p className="text-sm text-gray-600 mt-2">
+              Mostrando {sortedData.length} de {data.length} jugadores
+            </p>
+          )}
         </div>
-      ))}
-    </div>
-  )
+
+        {sortedData.slice(0, 20).map((record, index) => (
+          <div 
+            key={record.id} 
+            className="bg-gray-50 rounded-lg p-4 hover:shadow-md hover:bg-gray-100 transition-all cursor-pointer border-2 border-transparent hover:border-bowling-orange-200"
+            onClick={() => setSelectedPlayer(record)}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                  {index + 1}
+                </div>
+                <div>
+                  <p className="font-semibold text-bowling-black-900">
+                    {record.fields.Name || 'Sin nombre'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    HDC: {record.fields.hdc || 0} | Pista: {record.fields.Pista || 'N/A'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold text-bowling-orange-500">
+                  {record.fields.Promedio || 0}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Prom HDC: {record.fields.PromedioHDC || 0}
+                </p>
+              </div>
+            </div>
+            
+            {/* Líneas de juego - Ahora con 6 columnas */}
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-2">
+              <div className="text-center p-2 bg-white rounded">
+                <p className="text-xs text-gray-500">L1</p>
+                <p className="font-semibold">{record.fields.L1 || 0}</p>
+              </div>
+              <div className="text-center p-2 bg-white rounded">
+                <p className="text-xs text-gray-500">L2</p>
+                <p className="font-semibold">{record.fields.L2 || 0}</p>
+              </div>
+              <div className="text-center p-2 bg-white rounded">
+                <p className="text-xs text-gray-500">L3</p>
+                <p className="font-semibold">{record.fields.L3 || 0}</p>
+              </div>
+              <div className="text-center p-2 bg-white rounded">
+                <p className="text-xs text-gray-500">L4</p>
+                <p className="font-semibold">{record.fields.L4 || 0}</p>
+              </div>
+              <div className="text-center p-2 bg-white rounded">
+                <p className="text-xs text-gray-500">L5</p>
+                <p className="font-semibold">{record.fields.L5 || 0}</p>
+              </div>
+              <div className="text-center p-2 bg-white rounded">
+                <p className="text-xs text-gray-500">L6</p>
+                <p className="font-semibold">{record.fields.L6 || 0}</p>
+              </div>
+            </div>
+            
+            {/* Estadísticas adicionales */}
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Min: {record.fields.Minimo || 0}</span>
+              <span>Max: {record.fields.Maximo || 0}</span>
+              <span>Total: {record.fields['Total Pines'] || 0}</span>
+            </div>
+            
+            {/* Indicador de click */}
+            <div className="text-center mt-2">
+              <p className="text-xs text-bowling-orange-500 opacity-75">👆 Haz clic para ver ficha completa</p>
+            </div>
+          </div>
+        ))}
+        
+        {/* Mensaje cuando no hay resultados */}
+        {sortedData.length === 0 && searchFilter && (
+          <div className="text-center py-8">
+            <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No se encontraron jugadores con el nombre "{searchFilter}"</p>
+            <button
+              onClick={() => setSearchFilter('')}
+              className="mt-2 text-bowling-orange-500 hover:text-bowling-orange-600 font-medium"
+            >
+              Limpiar búsqueda
+            </button>
+          </div>
+        )}
+        
+        {/* Mensaje cuando no hay datos */}
+        {data.length === 0 && !searchFilter && (
+          <div className="text-center py-8">
+            <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No hay jugadores disponibles</p>
+          </div>
+        )}
+        
+        {/* Contador de registros mostrados */}
+        {sortedData.length > 20 && (
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-500">
+              Mostrando 20 de {sortedData.length} jugadores
+              {searchFilter && ` (filtrados de ${data.length} totales)`}
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   // Renderizado específico para Información
   const renderInformacion = () => (
@@ -310,6 +407,122 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
           </div>
         )}
       </div>
+
+      {/* Modal de Ficha Completa del Jugador */}
+      {selectedPlayer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header del Modal */}
+            <div className="bg-gradient-to-r from-bowling-orange-500 to-bowling-blue-500 text-white p-6 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedPlayer.fields.Name || 'Sin nombre'}</h2>
+                    <p className="text-white text-opacity-90">Ficha Completa del Jugador</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedPlayer(null)}
+                  className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenido del Modal */}
+            <div className="p-6">
+              {/* Información Principal */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center mb-3">
+                    <Target className="w-5 h-5 text-bowling-orange-500 mr-2" />
+                    <h3 className="text-lg font-semibold text-bowling-black-900">Información General</h3>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Handicap:</span>
+                      <span className="font-semibold">{selectedPlayer.fields.hdc || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Pista:</span>
+                      <span className="font-semibold">{selectedPlayer.fields.Pista || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Ranking:</span>
+                      <span className="font-semibold">{selectedPlayer.fields.Rank || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center mb-3">
+                    <TrendingUp className="w-5 h-5 text-bowling-blue-500 mr-2" />
+                    <h3 className="text-lg font-semibold text-bowling-black-900">Promedios</h3>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Promedio:</span>
+                      <span className="font-bold text-bowling-orange-500 text-lg">{selectedPlayer.fields.Promedio || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Promedio HDC:</span>
+                      <span className="font-semibold">{selectedPlayer.fields.PromedioHDC || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Líneas de Juego */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-bowling-black-900 mb-3">Líneas de Juego</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {['L1', 'L2', 'L3', 'L4', 'L5', 'L6'].map((linea) => (
+                    <div key={linea} className="bg-white border-2 border-gray-200 rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-500 mb-1">{linea}</p>
+                      <p className="text-xl font-bold text-bowling-black-900">
+                        {selectedPlayer.fields[linea] || 0}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Estadísticas Detalladas */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-bowling-black-900 mb-3">Estadísticas Detalladas</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="text-center">
+                    <p className="text-gray-600">Mínimo</p>
+                    <p className="text-2xl font-bold text-red-500">{selectedPlayer.fields.Minimo || 0}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-600">Máximo</p>
+                    <p className="text-2xl font-bold text-green-500">{selectedPlayer.fields.Maximo || 0}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-600">Total Pines</p>
+                    <p className="text-2xl font-bold text-bowling-blue-500">{selectedPlayer.fields['Total Pines'] || 0}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botón de Cerrar */}
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => setSelectedPlayer(null)}
+                  className="bg-gradient-to-r from-bowling-orange-500 to-bowling-blue-500 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all"
+                >
+                  Cerrar Ficha
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
