@@ -201,8 +201,8 @@ export function TournamentAirtableManagement() {
         Descripcion: formData.Descripcion,
         Ganador: formData.Ganador,
         Subcampeon: formData.Subcampeón, // Sin tilde como en Airtable
-        Participantes: parseInt(formData.Participantes) || 0, // Convertir a número
-        Premio: parseFloat(formData.Premio) || 0, // Convertir a número
+        Participantes: formData.Participantes || undefined,
+        Premio: formData.Premio || undefined,
         Categoria: formData.Categoria,
         Activo: formData.Activo // Campo checkbox en Airtable
         // Foto: omitido para evitar errores
