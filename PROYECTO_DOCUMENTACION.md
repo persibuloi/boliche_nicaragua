@@ -677,6 +677,60 @@ El usuario solicitó cambiar el nombre de "Jugador" a "Promedios Jugador" para m
 **Desarrollador**: 
 Cascade AI
 
+### [30-01-2025 - 07:13] - ACTUALIZACIÓN COMPLETA DEL REPOSITORIO GITHUB
+**Archivos modificados/creados**: 
+- `PROYECTO_DOCUMENTACION.md` (actualizado)
+- `src/components/Layout/Header.tsx` (modificado)
+- `src/components/Sections/HeroSection.tsx` (modificado)
+- `src/components/Sections/StatsMenu.tsx` (modificado extensivamente)
+
+**Descripción**: 
+**1. Commit realizado con mensaje descriptivo:**
+```
+feat: Mejoras completas en sección Ver Torneos
+
+- Agregados campos L5 y L6 en tabla Promedios Jugador
+- Implementado ordenamiento por promedio descendente
+- Creado modal de ficha completa del jugador
+- Agregado filtro de búsqueda por nombre de jugador
+- Cambiado nombre de tabla de 'Jugador' a 'Promedios Jugador'
+- Actualizada navegación en página principal con nuevos enlaces
+- Modificado menú superior para incluir 'Ver Torneos'
+- Documentación exhaustiva actualizada en PROYECTO_DOCUMENTACION.md
+```
+
+**2. Estadísticas del commit:**
+- **Commit ID**: 5528df9
+- **Archivos modificados**: 4 archivos
+- **Líneas agregadas**: 584 insertions
+- **Líneas eliminadas**: 69 deletions
+- **Push exitoso**: origin/main actualizado
+
+**3. Cambios incluidos en la actualización:**
+- ✅ Campos L5 y L6 en tabla Promedios Jugador
+- ✅ Ordenamiento por promedio descendente
+- ✅ Modal de ficha completa del jugador clickeable
+- ✅ Filtro de búsqueda en tiempo real por nombre
+- ✅ Cambio de nombre "Jugador" → "Promedios Jugador"
+- ✅ Nuevos enlaces en página principal (Videos, Fotos Torneos, Calculadora, Podcast)
+- ✅ "Ver Torneos" agregado al menú superior
+- ✅ Navegación consistente entre menú y página principal
+- ✅ Documentación exhaustiva de todos los cambios
+
+**Razón del cambio**: 
+El usuario solicitó actualizar el repositorio de GitHub con todas las mejoras implementadas en la sección "Ver Torneos" y la navegación de la aplicación.
+
+**Estado funcional**: 
+✅ Repositorio GitHub actualizado exitosamente
+✅ Commit con mensaje descriptivo realizado
+✅ Push a origin/main completado
+✅ Todas las funcionalidades preservadas
+✅ Código respaldado en GitHub (persibuloi/boliche_nicaragua)
+✅ Historial de cambios completo mantenido
+
+**Desarrollador**: 
+Cascade AI
+
 ---
 
 **🎉 PROYECTO COMPLETADO EXITOSAMENTE - ENERO 2025**

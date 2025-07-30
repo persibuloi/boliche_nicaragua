@@ -533,17 +533,17 @@ export function StatsMenu() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-bowling-black-900 mb-4">Torneo Relámpago</h1>
-        <div className="w-24 h-1 bg-gradient-to-r from-bowling-orange-500 to-bowling-blue-500 mx-auto mb-4"></div>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+      {/* Header - Responsive */}
+      <div className="text-center mb-6 sm:mb-8 lg:mb-12">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-bowling-black-900 mb-2 sm:mb-4">Torneo Relámpago</h1>
+        <div className="w-16 sm:w-20 lg:w-24 h-1 bg-gradient-to-r from-bowling-orange-500 to-bowling-blue-500 mx-auto mb-2 sm:mb-4"></div>
+        <p className="text-sm sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto px-4">
           Explora las diferentes tablas de datos de nuestro torneo relámpago
         </p>
       </div>
 
-      {/* Table Selection Menu */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      {/* Table Selection Menu - Responsive Design */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-6">
         {AVAILABLE_TABLES.map((table) => {
           const IconComponent = table.icon
           const isSelected = selectedTable === table.id
@@ -552,28 +552,32 @@ export function StatsMenu() {
             <button
               key={table.id}
               onClick={() => setSelectedTable(table.id)}
-              className={`flex items-center px-4 py-3 rounded-lg border-2 transition-all ${
+              className={`flex items-center px-3 py-2 sm:px-4 sm:py-3 rounded-lg border-2 transition-all text-left w-full ${
                 isSelected
                   ? 'border-bowling-orange-500 bg-bowling-orange-50 shadow-md'
                   : 'border-gray-200 bg-white hover:border-bowling-blue-300 hover:shadow-sm'
               }`}
             >
-              <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${table.color} flex items-center justify-center mr-3`}>
-                <IconComponent className="w-4 h-4 text-white" />
+              {/* Icon - Smaller on mobile */}
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-r ${table.color} flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0`}>
+                <IconComponent className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
               </div>
               
-              <div className="text-left">
-                <h3 className={`text-sm font-bold ${
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <h3 className={`text-xs sm:text-sm font-bold truncate ${
                   isSelected ? 'text-bowling-orange-600' : 'text-bowling-black-900'
                 }`}>
                   {table.name}
                 </h3>
-                <p className="text-xs text-gray-500 hidden sm:block">
-                  {table.description.length > 40 ? table.description.substring(0, 40) + '...' : table.description}
+                {/* Description - Hidden on mobile, truncated on tablet+ */}
+                <p className="text-xs text-gray-500 hidden sm:block truncate">
+                  {table.description.length > 35 ? table.description.substring(0, 35) + '...' : table.description}
                 </p>
               </div>
               
-              <ChevronRight className={`w-4 h-4 ml-2 transition-transform ${
+              {/* Arrow - Smaller on mobile */}
+              <ChevronRight className={`w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 transition-transform flex-shrink-0 ${
                 isSelected ? 'text-bowling-orange-500 rotate-90' : 'text-gray-400'
               }`} />
             </button>
