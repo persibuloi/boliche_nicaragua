@@ -13,8 +13,12 @@ export function Footer({ onSectionChange }: FooterProps) {
           {/* Logo y descripción */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-bowling-orange-500 to-bowling-blue-500 rounded-full flex items-center justify-center">
-                <CircleDot className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg p-2">
+                <img 
+                  src="/logo-header.svg" 
+                  alt="Boliche Nicaragua Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h3 className="text-2xl font-bold">Boliche Nicaragua</h3>

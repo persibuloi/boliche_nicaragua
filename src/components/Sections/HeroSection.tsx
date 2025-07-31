@@ -1,5 +1,5 @@
 import React from 'react'
-import { Play, Users, Trophy, Target, Camera, Calculator, Mic } from 'lucide-react'
+import { Play, Users, Trophy, Target, Camera, Calculator, Mic, Gamepad2 } from 'lucide-react'
 
 interface HeroSectionProps {
   onSectionChange?: (section: string) => void
@@ -66,7 +66,7 @@ export function HeroSection({ onSectionChange }: HeroSectionProps) {
           </div>
 
           {/* Feature cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
             <button 
               onClick={() => onSectionChange?.('videos')}
               className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-200 transform hover:scale-105 cursor-pointer"
@@ -98,6 +98,17 @@ export function HeroSection({ onSectionChange }: HeroSectionProps) {
               </div>
               <h3 className="text-lg font-semibold mb-2">Calculadora</h3>
               <p className="text-gray-300 text-sm">Calcula tu handicap personalizado con parámetros ajustables</p>
+            </button>
+
+            <button 
+              onClick={() => onSectionChange?.('simulador-boliche')}
+              className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-200 transform hover:scale-105 cursor-pointer"
+            >
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Gamepad2 className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Simulación</h3>
+              <p className="text-gray-300 text-sm">Simula partidas de boliche con múltiples jugadores</p>
             </button>
 
             <button 

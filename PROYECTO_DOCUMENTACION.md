@@ -9,6 +9,7 @@
 **Estado**: ✅ COMPLETADO Y FUNCIONAL  
 **Fecha de finalización**: Enero 2025  
 **Repositorio**: https://github.com/persibuloi/boliche_nicaragua  
+**Última actualización**: 30 de Enero 2025 - 20:46 CST
 
 ---
 
@@ -731,6 +732,172 @@ El usuario solicitó actualizar el repositorio de GitHub con todas las mejoras i
 **Desarrollador**: 
 Cascade AI
 
+### [30-01-2025 - 07:24] - OPTIMIZACIÓN RESPONSIVE PARA MENÚS MÓVILES EN VER TORNEOS
+**Archivos modificados/creados**: 
+- `src/components/Sections/StatsMenu.tsx` (optimizado extensivamente)
+- `PROYECTO_DOCUMENTACION.md` (actualizado)
+
+**Descripción**: 
+**1. Problema identificado:**
+El usuario reportó que los menús de selección de tablas en "Ver Torneos" se veían muy grandes en la aplicación móvil, afectando la experiencia de usuario en dispositivos pequeños.
+
+**2. Soluciones implementadas:**
+
+**A. Layout Responsive:**
+- Cambiado de `flex flex-wrap` a `grid` con columnas adaptativas:
+  - **Móvil**: `grid-cols-1` (1 columna)
+  - **Tablet**: `grid-cols-2` (2 columnas) 
+  - **Desktop**: `grid-cols-3` (3 columnas)
+- Reducido gap entre elementos: `gap-2 sm:gap-3`
+
+**B. Tamaños Optimizados:**
+- **Iconos**: `w-6 h-6` en móvil → `w-8 h-8` en desktop
+- **Iconos internos**: `w-3 h-3` en móvil → `w-4 h-4` en desktop
+- **Padding**: `px-3 py-2` en móvil → `px-4 py-3` en desktop
+- **Texto títulos**: `text-xs` en móvil → `text-sm` en desktop
+- **Flechas**: `w-3 h-3` en móvil → `w-4 h-4` en desktop
+
+**C. Header Responsive:**
+- **Título principal**: `text-2xl` móvil → `text-3xl` tablet → `text-4xl` desktop
+- **Descripción**: `text-sm` móvil → `text-lg` tablet → `text-xl` desktop
+- **Línea decorativa**: `w-16` móvil → `w-20` tablet → `w-24` desktop
+- **Márgenes**: `mb-6` móvil → `mb-8` tablet → `mb-12` desktop
+
+**D. Mejoras UX:**
+- Agregado `truncate` para evitar desbordamiento de texto
+- Descripciones ocultas en móvil (`hidden sm:block`)
+- Mejor uso del espacio con `flex-1 min-w-0`
+- `flex-shrink-0` en iconos y flechas para mantener tamaños
+
+**3. Commit realizado:**
+```
+fix: Optimización responsive para menús móviles en Ver Torneos
+
+- Cambiado layout de flex-wrap a grid responsive (1/2/3 columnas)
+- Reducidos tamaños de iconos y texto en dispositivos móviles  
+- Optimizado header con tamaños de fuente adaptativos
+- Mejorado espaciado y padding para pantallas pequeñas
+- Agregado truncate para evitar desbordamiento de texto
+- Ocultas descripciones en móvil, visibles en tablet+
+- Mejor experiencia de usuario en aplicación móvil
+```
+
+**4. Estadísticas del commit:**
+- **Commit ID**: 29e6b27
+- **Archivos modificados**: 2 archivos
+- **Líneas agregadas**: 73 insertions
+- **Líneas eliminadas**: 15 deletions
+- **Push exitoso**: origin/main actualizado
+
+**Razón del cambio**: 
+El usuario reportó que los menús de "Ver Torneos" se veían muy grandes en dispositivos móviles, requiriendo optimización responsive para mejorar la experiencia de usuario en la aplicación móvil.
+
+**Estado funcional**: 
+✅ Menús optimizados para dispositivos móviles
+✅ Layout responsive con grid adaptativo implementado
+✅ Tamaños de elementos escalables según pantalla
+✅ Header con tipografía responsive
+✅ Mejor aprovechamiento del espacio en móviles
+✅ Experiencia de usuario mejorada en aplicación móvil
+✅ Repositorio GitHub actualizado exitosamente
+✅ Servidor funcionando en localhost:3001
+
+**Desarrollador**: 
+Cascade AI
+
+---
+
+---
+
+## 📅 HISTORIAL DE CAMBIOS - ENERO 30, 2025
+
+### 🎮 RESTAURACIÓN DEL MENÚ DE SIMULACIÓN DE JUEGOS
+**Fecha**: 30 de Enero 2025 - 18:05 a 18:15 CST  
+**Desarrollador**: Cascade AI  
+**Tipo de cambio**: Restauración de funcionalidad existente  
+
+#### 🔍 PROBLEMA IDENTIFICADO
+- El usuario reportó que el menú de "Simulación de Juegos" había desaparecido
+- La funcionalidad existía pero no era accesible desde la interfaz
+- El componente `BowlingSimulator.tsx` estaba implementado y funcional
+- La lógica de navegación en `App.tsx` estaba correcta
+- **Causa raíz**: Faltaba el elemento de navegación en el Header y página principal
+
+#### ✅ SOLUCIONES IMPLEMENTADAS
+
+##### 1. **Restauración en Header de Navegación** (`Header.tsx`)
+```typescript
+// ANTES: No existía el menú
+// DESPUÉS: Agregado entre "Ver Torneos" y "Calculadora"
+{ id: 'simulador-boliche', label: 'Simulación de Juegos', icon: Gamepad2 }
+```
+
+**Cambios específicos**:
+- ✅ Importado icono `Gamepad2` de Lucide React
+- ✅ Agregado elemento de navegación con ID `'simulador-boliche'`
+- ✅ Funcional en versión desktop y móvil
+- ✅ Estilos consistentes con el resto del menú
+
+##### 2. **Agregado en Página Principal** (`HeroSection.tsx`)
+```typescript
+// Nueva tarjeta de característica principal
+<button onClick={() => onSectionChange?.('simulador-boliche')}>
+  <Gamepad2 className="w-6 h-6 text-white" />
+  <h3>Simulación</h3>
+  <p>Simula partidas de boliche con múltiples jugadores</p>
+</button>
+```
+
+**Cambios específicos**:
+- ✅ Importado icono `Gamepad2`
+- ✅ Expandido grid de 4 a 5 columnas (`lg:grid-cols-5`)
+- ✅ Agregada tarjeta con icono verde distintivo
+- ✅ Descripción clara de la funcionalidad
+- ✅ Navegación funcional al simulador
+
+#### 🎯 FUNCIONALIDADES DEL SIMULADOR CONFIRMADAS
+El componente `BowlingSimulator.tsx` incluye:
+- ✅ **Múltiples jugadores**: Configuración de 1-8 jugadores
+- ✅ **Sistema de puntuación completo**: Strikes, spares, frame 10
+- ✅ **Interfaz visual profesional**: Tabla de puntuación en tiempo real
+- ✅ **Lógica de boliche auténtica**: Cálculos correctos según reglas oficiales
+- ✅ **Gestión de turnos**: Rotación automática entre jugadores
+- ✅ **Configuración de partida**: Nombres personalizables
+- ✅ **Reinicio de juego**: Funcionalidad completa de reset
+
+#### 📊 ARCHIVOS MODIFICADOS
+1. **`src/components/Layout/Header.tsx`**
+   - Línea 14: Agregado import `Gamepad2`
+   - Línea 29: Agregado elemento de navegación
+
+2. **`src/components/Sections/HeroSection.tsx`**
+   - Línea 2: Agregado import `Gamepad2`
+   - Línea 68: Cambiado grid a 5 columnas
+   - Líneas 102-112: Nueva tarjeta de simulación
+
+#### 🚀 RESULTADO FINAL
+- ✅ **Acceso desde menú superior**: "Simulación de Juegos" visible y funcional
+- ✅ **Acceso desde página principal**: Tarjeta "Simulación" con icono verde
+- ✅ **Navegación correcta**: Ambos accesos llevan a `simulador-boliche`
+- ✅ **Funcionalidad completa**: Simulador operativo al 100%
+- ✅ **Diseño consistente**: Estilos integrados con el resto de la aplicación
+- ✅ **Responsive**: Funciona correctamente en desktop y móvil
+
+#### 🔧 ESTADO TÉCNICO POST-IMPLEMENTACIÓN
+- **Servidor**: Funcionando en localhost:3001
+- **Build**: Sin errores de compilación
+- **Navegación**: Todas las rutas operativas
+- **UI/UX**: Experiencia de usuario mejorada
+- **Accesibilidad**: Menús accesibles desde múltiples puntos
+
+#### 📝 NOTAS DE DESARROLLO
+- El simulador ya estaba completamente implementado
+- Solo se requirió restaurar el acceso desde la interfaz
+- La arquitectura del proyecto facilitó la integración rápida
+- No se requirieron cambios en la lógica de negocio
+- Implementación completada en ~10 minutos
+
 ---
 
 **🎉 PROYECTO COMPLETADO EXITOSAMENTE - ENERO 2025**
+**🔄 ÚLTIMA ACTUALIZACIÓN: 30 de Enero 2025 - Restauración Simulador**

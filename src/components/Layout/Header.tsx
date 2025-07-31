@@ -11,7 +11,9 @@ import {
   Mail, 
   Mic,
   Calculator,
-  Eye
+  Eye,
+  Gamepad2,
+  FileText
 } from 'lucide-react'
 
 interface HeaderProps {
@@ -27,6 +29,7 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
     { id: 'videos', label: 'Videos', icon: Play },
     { id: 'torneos', label: 'Fotos Torneos', icon: Trophy },
     { id: 'menu-estadisticas', label: 'Ver Torneos', icon: Eye },
+    { id: 'simulador-boliche', label: 'Simulación de Juegos', icon: Gamepad2 },
     { id: 'calculadora-handicap', label: 'Calculadora', icon: Calculator },
     { id: 'estadisticas', label: 'Estadísticas', icon: BarChart3 },
     { id: 'contacto', label: 'Contacto', icon: Mail },
@@ -44,8 +47,12 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
         <div className="flex items-center justify-between h-18">
           {/* Logo */}
           <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => handleSectionClick('inicio')}>
-            <div className="w-12 h-12 bg-gradient-to-br from-bowling-orange-500 via-bowling-orange-400 to-bowling-blue-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-bowling-orange-500/25 transition-all duration-300 group-hover:scale-105">
-              <CircleDot className="w-7 h-7 text-white" />
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-bowling-orange-500/25 transition-all duration-300 group-hover:scale-105 p-2">
+              <img 
+                src="/logo-header.svg" 
+                alt="Boliche Nicaragua Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">Boliche Nicaragua</h1>

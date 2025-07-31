@@ -341,6 +341,116 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
     </div>
   )
 
+  // Renderizado específico para Datos Finales
+  const renderDatosFinales = () => {
+    // Procesar datos para estadísticas (usando los mismos nombres de campos que FinalDataSection)
+    const playersData = data.map(record => ({
+      id: record.id,
+      jugador: record.fields.jugador || '',
+      equipo: record.fields.equipo || '',
+      total_games_historico: record.fields.total_games_historico || 0,
+      score_minimo: record.fields.score_minimo || 0,
+      score_maximo: record.fields.score_maximo || 0,
+      promedio_historico: record.fields.promedio_historico || 0,
+      foto: record.fields.foto || []
+    }))
+
+    // Estadísticas generales
+    const totalPlayers = playersData.length
+    const totalGames = playersData.reduce((sum, player) => sum + player.total_games_historico, 0)
+    const highestScore = playersData.length > 0 ? Math.max(...playersData.map(player => player.score_maximo)) : 0
+    const averageScore = playersData.length > 0 
+      ? Math.round(playersData.reduce((sum, player) => sum + player.score_maximo, 0) / playersData.length)
+      : 0
+
+    return (
+      <div className="space-y-6">
+        {/* Estadísticas Generales */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold">{totalPlayers}</div>
+            <div className="text-sm opacity-90">Total Jugadores</div>
+          </div>
+          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold">{totalGames}</div>
+            <div className="text-sm opacity-90">Juegos Totales</div>
+          </div>
+          <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold">{highestScore}</div>
+            <div className="text-sm opacity-90">Score Máximo</div>
+          </div>
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold">{averageScore}</div>
+            <div className="text-sm opacity-90">Promedio General</div>
+          </div>
+        </div>
+
+        {/* Tabla de Datos */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-bowling-orange-500 to-bowling-blue-500 text-white">
+                <tr>
+                  <th className="px-4 py-3 text-left">Foto</th>
+                  <th className="px-4 py-3 text-left">Jugador</th>
+                  <th className="px-4 py-3 text-center">Equipo</th>
+                  <th className="px-4 py-3 text-center">Juegos</th>
+                  <th className="px-4 py-3 text-center">Score Min</th>
+                  <th className="px-4 py-3 text-center">Score Max</th>
+                  <th className="px-4 py-3 text-center">Promedio</th>
+                </tr>
+              </thead>
+              <tbody>
+                {playersData.slice(0, 20).map((player, index) => (
+                  <tr key={player.id} className={`border-b hover:bg-gray-50 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                  }`}>
+                    <td className="px-4 py-3">
+                      {player.foto && player.foto.length > 0 ? (
+                        <img
+                          src={player.foto[0].url}
+                          alt={player.jugador}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-bowling-blue-400 to-bowling-orange-400 flex items-center justify-center text-white font-bold text-sm">
+                          {player.jugador.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-gray-800">{player.jugador}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-bowling-blue-100 text-bowling-blue-800">
+                        {player.equipo}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center font-bold">{player.total_games_historico}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-semibold text-red-600">{player.score_minimo}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-bold text-green-600">{player.score_maximo}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-semibold text-blue-600">{player.promedio_historico}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {playersData.length === 0 && (
+          <div className="text-center py-12">
+            <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No hay datos finales disponibles</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       <div className={`bg-gradient-to-r ${tableConfig.color} p-6`}>
@@ -393,6 +503,7 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
           tableName === 'Lista Jugadores' ? renderListaJugadores() : 
           tableName === 'Jugador' ? renderJugador() : 
           tableName === 'Informacion' ? renderInformacion() : 
+          tableName === 'Datos Finales' ? renderDatosFinales() : 
           renderListaJugadores()
         ) : (
           <p className="text-gray-500 text-center py-8">No hay datos disponibles</p>

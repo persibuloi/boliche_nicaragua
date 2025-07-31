@@ -6,10 +6,12 @@ import { HeroSection } from '@/components/Sections/HeroSection'
 import { VideosSection } from '@/components/Sections/VideosSection'
 import { StatsSection } from '@/components/Sections/StatsSection'
 import { StatsMenu } from './components/Sections/StatsMenu'
-import { HandicapCalculator } from '@/components/Sections/HandicapCalculator'
-import { BowlingSimulator } from '@/components/Sections/BowlingSimulator'
-import { ContactSection } from '@/components/Sections/ContactSection'
-import { PodcastSection } from '@/components/Sections/PodcastSection'
+import { StatsMenuSection } from './components/Sections/StatsMenuSection'
+import { AnalysisSection } from './components/Sections/AnalysisSection'
+import { BowlingSimulator } from './components/Sections/BowlingSimulator'
+import { HandicapCalculator } from './components/Sections/HandicapCalculator'
+import { ContactSection } from './components/Sections/ContactSection'
+import { PodcastSection } from './components/Sections/PodcastSection'
 import { TournamentsAirtableSection } from '@/components/Sections/TournamentsAirtableSection'
 import { AdminLogin } from '@/components/Admin/AdminLogin'
 import { AdminDashboard } from '@/components/Admin/AdminDashboard'
@@ -59,7 +61,7 @@ function AppContent() {
         {currentSection === 'inicio' && <HeroSection onSectionChange={handleSectionChange} />}
         {currentSection === 'videos' && <VideosSection />}
         {currentSection === 'torneos' && <TournamentsAirtableSection />}
-        {currentSection === 'estadisticas' && <StatsSection />}
+        {currentSection === 'estadisticas' && <StatsMenuSection />}
         {currentSection === 'menu-estadisticas' && (
           <div className="min-h-screen bg-gradient-to-br from-bowling-blue-50 to-bowling-orange-50">
             <StatsMenu />
