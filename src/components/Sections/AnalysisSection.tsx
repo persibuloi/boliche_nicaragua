@@ -178,7 +178,21 @@ export function AnalysisSection() {
                 {/* Botones */}
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => setSelectedPDF(pdf as PDFDocument)}
+                    onClick={() => {
+                      const pdfDocument: PDFDocument = {
+                        id: pdf.id,
+                        fields: {
+                          titulo: pdf.fields.titulo || '',
+                          descripcion: pdf.fields.descripcion,
+                          fecha_torneo: pdf.fields.fecha_torneo || '',
+                          categoria: pdf.fields.categoria,
+                          archivo: pdf.fields.archivo || [],
+                          fecha_subida: pdf.fields.fecha_subida,
+                          activo: pdf.fields.activo
+                        }
+                      }
+                      setSelectedPDF(pdfDocument)
+                    }}
                     className="flex-1 bg-bowling-blue-600 hover:bg-bowling-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                   >
                     <Eye className="w-4 h-4 mr-2" />
