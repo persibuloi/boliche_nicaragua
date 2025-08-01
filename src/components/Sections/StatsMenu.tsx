@@ -12,7 +12,8 @@ import {
   X,
   User,
   Target,
-  TrendingUp
+  TrendingUp,
+  PieChart
 } from 'lucide-react'
 
 // Configuración de tablas disponibles
@@ -32,6 +33,13 @@ const AVAILABLE_TABLES = [
     color: 'from-green-500 to-green-600'
   },
   { 
+    id: 'Graficos Jugadores', 
+    name: 'Gráficos Jugadores', 
+    icon: PieChart, 
+    description: 'Gráficos comparativos de promedios con y sin handicap',
+    color: 'from-orange-500 to-red-600'
+  },
+  { 
     id: 'Informacion', 
     name: 'Información', 
     icon: Info, 
@@ -46,11 +54,18 @@ interface TableViewProps {
 }
 
 function TableView({ tableName, tableConfig }: TableViewProps) {
-  const { data, loading, error } = useAirtable(tableName, {
+  // Para gráficos, usar la tabla 'Jugador'
+  const actualTableName = tableName === 'Graficos Jugadores' ? 'Jugador' : tableName
+  const { data, loading, error } = useAirtable(actualTableName, {
     maxRecords: 100
   })
   const [searchFilter, setSearchFilter] = useState('')
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null)
+  const [sortBy, setSortBy] = useState<'PromedioHDC' | 'Promedio' | 'Name' | 'Maximo' | 'Total Pines'>('PromedioHDC')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  // Estados específicos para gráficos
+  const [graphicsSortBy, setGraphicsSortBy] = useState<'PromedioHDC' | 'Promedio' | 'Name' | 'diferencia'>('PromedioHDC')
+  const [graphicsSortOrder, setGraphicsSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const IconComponent = tableConfig.icon
 
@@ -127,17 +142,65 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
 
   // Renderizado específico para Jugador
   const renderJugador = () => {
-    // Ordenar por promedio descendente usando datos filtrados
+    // Ordenar según el criterio seleccionado
     const sortedData = [...filteredJugadorData].sort((a, b) => {
-      const promedioA = parseFloat(a.fields.Promedio) || 0
-      const promedioB = parseFloat(b.fields.Promedio) || 0
-      return promedioB - promedioA
+      let valueA: number | string = 0
+      let valueB: number | string = 0
+      
+      switch (sortBy) {
+        case 'PromedioHDC':
+          // Parsing del PromedioHDC respetando el valor 0 como válido
+          const promedioHDCA = a.fields.PromedioHDC
+          const promedioHDCB = b.fields.PromedioHDC
+          valueA = typeof promedioHDCA === 'number' ? promedioHDCA : parseFloat(String(promedioHDCA ?? '0'))
+          valueB = typeof promedioHDCB === 'number' ? promedioHDCB : parseFloat(String(promedioHDCB ?? '0'))
+          break
+        case 'Promedio':
+          const promedioA = a.fields.Promedio
+          const promedioB = b.fields.Promedio
+          valueA = typeof promedioA === 'number' ? promedioA : parseFloat(String(promedioA || '0')) || 0
+          valueB = typeof promedioB === 'number' ? promedioB : parseFloat(String(promedioB || '0')) || 0
+          break
+        case 'Name':
+          valueA = (a.fields.Name || '').toLowerCase()
+          valueB = (b.fields.Name || '').toLowerCase()
+          break
+        case 'Maximo':
+          const maximoA = a.fields.Maximo
+          const maximoB = b.fields.Maximo
+          valueA = typeof maximoA === 'number' ? maximoA : parseFloat(String(maximoA || '0')) || 0
+          valueB = typeof maximoB === 'number' ? maximoB : parseFloat(String(maximoB || '0')) || 0
+          break
+        case 'Total Pines':
+          const totalA = a.fields['Total Pines']
+          const totalB = b.fields['Total Pines']
+          valueA = typeof totalA === 'number' ? totalA : parseFloat(String(totalA || '0')) || 0
+          valueB = typeof totalB === 'number' ? totalB : parseFloat(String(totalB || '0')) || 0
+          break
+        default:
+          const defaultA = a.fields.PromedioHDC
+          const defaultB = b.fields.PromedioHDC
+          valueA = typeof defaultA === 'number' ? defaultA : parseFloat(String(defaultA || '0')) || 0
+          valueB = typeof defaultB === 'number' ? defaultB : parseFloat(String(defaultB || '0')) || 0
+      }
+      
+      // Ordenamiento para strings (nombres)
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        return sortOrder === 'desc' ? valueB.localeCompare(valueA) : valueA.localeCompare(valueB)
+      }
+      
+      // Ordenamiento para números - asegurar que son números válidos
+      const numA = Number(valueA) || 0
+      const numB = Number(valueB) || 0
+      
+      return sortOrder === 'desc' ? numB - numA : numA - numB
     })
 
     return (
       <div className="space-y-3">
-        {/* Barra de búsqueda para Jugador */}
-        <div className="mb-4">
+        {/* Barra de búsqueda y filtros para Jugador */}
+        <div className="mb-4 space-y-4">
+          {/* Barra de búsqueda */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -156,14 +219,45 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
               </button>
             )}
           </div>
+          
+          {/* Filtros de ordenamiento */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ordenar por:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-orange-500 focus:border-transparent bg-white"
+              >
+                <option value="PromedioHDC">Promedio HDC</option>
+                <option value="Promedio">Promedio</option>
+                <option value="Name">Nombre</option>
+                <option value="Maximo">Puntaje Máximo</option>
+                <option value="Total Pines">Total Pines</option>
+              </select>
+            </div>
+            
+            <div className="sm:w-32">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Orden:</label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-orange-500 focus:border-transparent bg-white"
+              >
+                <option value="desc">Mayor a menor</option>
+                <option value="asc">Menor a mayor</option>
+              </select>
+            </div>
+          </div>
+          
           {searchFilter && (
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-sm text-gray-600">
               Mostrando {sortedData.length} de {data.length} jugadores
             </p>
           )}
         </div>
 
-        {sortedData.slice(0, 20).map((record, index) => (
+        {sortedData.slice(0, 24).map((record, index) => (
           <div 
             key={record.id} 
             className="bg-gray-50 rounded-lg p-4 hover:shadow-md hover:bg-gray-100 transition-all cursor-pointer border-2 border-transparent hover:border-bowling-orange-200"
@@ -184,11 +278,11 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-bowling-orange-500">
-                  {record.fields.Promedio || 0}
+                <p className="text-lg font-bold text-bowling-blue-500">
+                  {record.fields.PromedioHDC ?? 0}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Prom HDC: {record.fields.PromedioHDC || 0}
+                  Promedio: {record.fields.Promedio || 0}
                 </p>
               </div>
             </div>
@@ -258,11 +352,23 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
         )}
         
         {/* Contador de registros mostrados */}
-        {sortedData.length > 20 && (
+        {sortedData.length > 24 && (
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-500">
-              Mostrando 20 de {sortedData.length} jugadores
+              Mostrando 24 de {sortedData.length} jugadores
               {searchFilter && ` (filtrados de ${data.length} totales)`}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Ordenado por: {sortBy === 'PromedioHDC' ? 'Promedio HDC' : sortBy === 'Total Pines' ? 'Total Pines' : sortBy} ({sortOrder === 'desc' ? 'Mayor a menor' : 'Menor a mayor'})
+            </p>
+          </div>
+        )}
+        
+        {/* Información de ordenamiento cuando hay 24 o menos */}
+        {sortedData.length <= 24 && sortedData.length > 0 && (
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-400">
+              Mostrando {sortedData.length} jugadores - Ordenado por: {sortBy === 'PromedioHDC' ? 'Promedio HDC' : sortBy === 'Total Pines' ? 'Total Pines' : sortBy} ({sortOrder === 'desc' ? 'Mayor a menor' : 'Menor a mayor'})
             </p>
           </div>
         )}
@@ -340,6 +446,254 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
       ))}
     </div>
   )
+
+  // Renderizado específico para Gráficos Jugadores
+  const renderGraficosJugadores = () => {
+    // Filtrar y preparar datos para gráficos
+    const playersData = data
+      .filter(record => record.fields.Name && record.fields.Promedio)
+      .map(record => ({
+        name: record.fields.Name,
+        promedio: parseFloat(record.fields.Promedio) || 0,
+        promedioHDC: parseFloat(record.fields.PromedioHDC) || 0,
+        handicap: parseFloat(record.fields.hdc) || 0,
+        diferencia: (parseFloat(record.fields.Promedio) || 0) - (parseFloat(record.fields.PromedioHDC) || 0)
+      }))
+      .sort((a, b) => {
+        let valueA, valueB
+        switch (graphicsSortBy) {
+          case 'PromedioHDC':
+            valueA = a.promedioHDC
+            valueB = b.promedioHDC
+            break
+          case 'Promedio':
+            valueA = a.promedio
+            valueB = b.promedio
+            break
+          case 'Name':
+            valueA = a.name.toLowerCase()
+            valueB = b.name.toLowerCase()
+            break
+          case 'diferencia':
+            valueA = a.diferencia
+            valueB = b.diferencia
+            break
+          default:
+            valueA = a.promedioHDC
+            valueB = b.promedioHDC
+        }
+        
+        if (typeof valueA === 'string' && typeof valueB === 'string') {
+          return graphicsSortOrder === 'desc' ? valueB.localeCompare(valueA) : valueA.localeCompare(valueB)
+        }
+        
+        return graphicsSortOrder === 'desc' ? valueB - valueA : valueA - valueB
+      })
+      .slice(0, 24) // Top 24 jugadores
+
+    const maxPromedio = Math.max(...playersData.map(p => Math.max(p.promedio, p.promedioHDC)))
+
+    return (
+      <div className="space-y-6">
+        {/* Header de Gráficos */}
+        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 rounded-xl">
+          <div className="flex items-center">
+            <PieChart className="w-8 h-8 mr-3" />
+            <div>
+              <h2 className="text-2xl font-bold">Gráficos de Promedios</h2>
+              <p className="text-white text-opacity-90">Comparación visual de promedios con y sin handicap</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtros de ordenamiento para gráficos */}
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ordenar por:</label>
+              <select
+                value={graphicsSortBy}
+                onChange={(e) => setGraphicsSortBy(e.target.value as any)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+              >
+                <option value="PromedioHDC">Promedio HDC</option>
+                <option value="Promedio">Promedio Regular</option>
+                <option value="Name">Nombre</option>
+                <option value="diferencia">Diferencia (Impacto Handicap)</option>
+              </select>
+            </div>
+            
+            <div className="sm:w-32">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Orden:</label>
+              <select
+                value={graphicsSortOrder}
+                onChange={(e) => setGraphicsSortOrder(e.target.value as 'asc' | 'desc')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+              >
+                <option value="desc">Mayor a menor</option>
+                <option value="asc">Menor a mayor</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="mt-2 text-xs text-gray-500 text-center">
+            Mostrando 24 jugadores ordenados por: {graphicsSortBy === 'PromedioHDC' ? 'Promedio HDC' : graphicsSortBy === 'diferencia' ? 'Diferencia' : graphicsSortBy} ({graphicsSortOrder === 'desc' ? 'Mayor a menor' : 'Menor a mayor'})
+          </div>
+        </div>
+
+        {/* Estadísticas Generales */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-blue-50 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">
+              {playersData.length > 0 ? Math.round(playersData.reduce((sum, p) => sum + p.promedio, 0) / playersData.length) : 0}
+            </div>
+            <div className="text-sm text-gray-600">Promedio General</div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {playersData.length > 0 ? Math.round(playersData.reduce((sum, p) => sum + p.promedioHDC, 0) / playersData.length) : 0}
+            </div>
+            <div className="text-sm text-gray-600">Promedio HDC General</div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-orange-600">
+              {playersData.length > 0 ? Math.round(playersData.reduce((sum, p) => sum + p.diferencia, 0) / playersData.length) : 0}
+            </div>
+            <div className="text-sm text-gray-600">Diferencia Promedio</div>
+          </div>
+        </div>
+
+        {/* Gráfico de Barras Comparativo */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+            <BarChart3 className="w-5 h-5 mr-2 text-orange-500" />
+            Top 24 Jugadores - Comparación de Promedios
+          </h3>
+          
+          <div className="space-y-4">
+            {playersData.map((player, index) => (
+              <div key={player.name} className="space-y-2">
+                {/* Nombre del jugador */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold mr-3">
+                      {index + 1}
+                    </span>
+                    <span className="font-semibold text-gray-800 text-sm">{player.name}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    HDC: {player.handicap}
+                  </div>
+                </div>
+                
+                {/* Barras de promedio */}
+                <div className="space-y-1">
+                  {/* Promedio regular */}
+                  <div className="flex items-center">
+                    <div className="w-20 text-xs text-gray-600 mr-2">Promedio:</div>
+                    <div className="flex-1 bg-gray-200 rounded-full h-4 relative">
+                      <div 
+                        className="bg-gradient-to-r from-blue-400 to-blue-600 h-4 rounded-full flex items-center justify-end pr-2"
+                        style={{ width: `${(player.promedio / maxPromedio) * 100}%` }}
+                      >
+                        <span className="text-xs text-white font-bold">{player.promedio}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Promedio HDC */}
+                  <div className="flex items-center">
+                    <div className="w-20 text-xs text-gray-600 mr-2">HDC:</div>
+                    <div className="flex-1 bg-gray-200 rounded-full h-4 relative">
+                      <div 
+                        className="bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full flex items-center justify-end pr-2"
+                        style={{ width: `${(player.promedioHDC / maxPromedio) * 100}%` }}
+                      >
+                        <span className="text-xs text-white font-bold">{player.promedioHDC}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Diferencia */}
+                  <div className="flex items-center justify-end">
+                    <div className="text-xs text-gray-500">
+                      Diferencia: 
+                      <span className={`font-bold ml-1 ${
+                        player.diferencia >= 0 ? 'text-red-500' : 'text-green-500'
+                      }`}>
+                        {player.diferencia > 0 ? '+' : ''}{player.diferencia.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Leyenda */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-center space-x-6 text-sm">
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-gradient-to-r from-blue-400 to-blue-600 rounded mr-2"></div>
+                <span className="text-gray-600">Promedio Regular</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-green-600 rounded mr-2"></div>
+                <span className="text-gray-600">Promedio con Handicap</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              * Diferencia positiva indica que el handicap reduce el promedio
+            </p>
+          </div>
+        </div>
+        
+        {/* Análisis de Handicaps */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <Target className="w-5 h-5 mr-2 text-purple-500" />
+            Análisis de Handicaps
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Jugadores con mayor diferencia */}
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-3">Mayor Impacto del Handicap</h4>
+              <div className="space-y-2">
+                {playersData
+                  .sort((a, b) => b.diferencia - a.diferencia)
+                  .slice(0, 5)
+                  .map((player, index) => (
+                    <div key={player.name} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                      <span className="text-sm font-medium">{player.name}</span>
+                      <span className="text-sm text-red-600 font-bold">-{player.diferencia.toFixed(1)}</span>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+            
+            {/* Jugadores con menor diferencia */}
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-3">Menor Impacto del Handicap</h4>
+              <div className="space-y-2">
+                {playersData
+                  .sort((a, b) => a.diferencia - b.diferencia)
+                  .slice(0, 5)
+                  .map((player, index) => (
+                    <div key={player.name} className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <span className="text-sm font-medium">{player.name}</span>
+                      <span className="text-sm text-green-600 font-bold">{player.diferencia.toFixed(1)}</span>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Renderizado específico para Datos Finales
   const renderDatosFinales = () => {
@@ -502,6 +856,7 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
         {data.length > 0 ? (
           tableName === 'Lista Jugadores' ? renderListaJugadores() : 
           tableName === 'Jugador' ? renderJugador() : 
+          tableName === 'Graficos Jugadores' ? renderGraficosJugadores() : 
           tableName === 'Informacion' ? renderInformacion() : 
           tableName === 'Datos Finales' ? renderDatosFinales() : 
           renderListaJugadores()
@@ -574,14 +929,14 @@ function TableView({ tableName, tableConfig }: TableViewProps) {
                     <TrendingUp className="w-5 h-5 text-bowling-blue-500 mr-2" />
                     <h3 className="text-lg font-semibold text-bowling-black-900">Promedios</h3>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Promedio:</span>
-                      <span className="font-bold text-bowling-orange-500 text-lg">{selectedPlayer.fields.Promedio || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center">
                       <span className="text-gray-600">Promedio HDC:</span>
-                      <span className="font-semibold">{selectedPlayer.fields.PromedioHDC || 0}</span>
+                      <span className="font-bold text-bowling-blue-500 text-xl">{selectedPlayer.fields.PromedioHDC ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Promedio:</span>
+                      <span className="font-semibold text-bowling-orange-500 text-lg">{selectedPlayer.fields.Promedio || 0}</span>
                     </div>
                   </div>
                 </div>
