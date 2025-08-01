@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { FinalDataSection } from './FinalDataSection'
 import { AnalysisSection } from './AnalysisSection'
-import { Database, FileText } from 'lucide-react'
+import { BracketTournamentSection } from './BracketTournamentSection'
+import { Database, FileText, Trophy } from 'lucide-react'
 
 // Opciones del menú de estadísticas
 const STATS_MENU_OPTIONS = [
   { id: 'datos-finales', name: 'Datos Finales', icon: Database, description: 'Estadísticas completas de jugadores' },
-  { id: 'analisis-pdfs', name: 'Análisis de PDFs', icon: FileText, description: 'Documentos y análisis de torneos' }
+  { id: 'analisis-pdfs', name: 'Análisis de PDFs', icon: FileText, description: 'Documentos y análisis de torneos' },
+  { id: 'torneo-brackets', name: 'Torneo por Eliminación', icon: Trophy, description: 'Sistema de eliminación por brackets (8 jugadores, 4 líneas)' }
 ]
 
 export function StatsMenuSection() {
@@ -19,6 +21,10 @@ export function StatsMenuSection() {
 
   if (selectedOption === 'datos-finales') {
     return <FinalDataSection />
+  }
+
+  if (selectedOption === 'torneo-brackets') {
+    return <BracketTournamentSection />
   }
 
   // Menú principal de estadísticas

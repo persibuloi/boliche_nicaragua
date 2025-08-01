@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAirtable } from '@/hooks/useAirtable'
+import { BracketTournamentSection } from './BracketTournamentSection'
 import { 
   Users, 
   Trophy, 
@@ -45,6 +46,13 @@ const AVAILABLE_TABLES = [
     icon: Info, 
     description: 'Información dinámica y anuncios sobre los torneos relámpago',
     color: 'from-purple-500 to-purple-600'
+  },
+  { 
+    id: 'Torneo Brackets', 
+    name: 'Brackets', 
+    icon: Target, 
+    description: 'Sistema de eliminación por brackets (8 jugadores, 4 líneas)',
+    color: 'from-red-500 to-pink-600'
   }
 ]
 
@@ -54,6 +62,11 @@ interface TableViewProps {
 }
 
 function TableView({ tableName, tableConfig }: TableViewProps) {
+  // Si es el torneo por brackets, renderizar el componente específico
+  if (tableName === 'Torneo Brackets') {
+    return <BracketTournamentSection />
+  }
+
   // Para gráficos, usar la tabla 'Jugador'
   const actualTableName = tableName === 'Graficos Jugadores' ? 'Jugador' : tableName
   const { data, loading, error } = useAirtable(actualTableName, {
