@@ -54,7 +54,7 @@ export function BracketTournamentSection() {
   const addPlayer = () => {
     if (newPlayerName.trim() && newPlayerHandicap.trim() && players.length < 8) {
       const handicap = parseInt(newPlayerHandicap)
-      if (handicap >= 0 && handicap <= 50) {
+      if (handicap >= 0 && handicap <= 80) {
         const newPlayer: Player = {
           id: `player-${Date.now()}`,
           name: newPlayerName.trim(),
@@ -216,12 +216,12 @@ export function BracketTournamentSection() {
               />
               <input
                 type="number"
-                placeholder="Hándicap (0-50)"
+                placeholder="Hándicap (0-80)"
                 value={newPlayerHandicap}
                 onChange={(e) => setNewPlayerHandicap(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-blue-500 focus:border-transparent"
                 min="0"
-                max="50"
+                max="80"
               />
               <button
                 onClick={addPlayer}

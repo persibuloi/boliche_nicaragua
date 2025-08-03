@@ -9,7 +9,7 @@
 **Estado**: ✅ COMPLETADO Y FUNCIONAL  
 **Fecha de finalización**: Enero 2025  
 **Repositorio**: https://github.com/persibuloi/boliche_nicaragua  
-**Última actualización**: 01 de Agosto 2025 - 11:23 AM CST
+**Última actualización**: 02 de Agosto 2025 - 8:21 PM CST
 
 ---
 
@@ -42,7 +42,8 @@ src/
 │   │   ├── HandicapCalculator.tsx            # Calculadora handicap
 │   │   ├── StatsSection.tsx                  # Estadísticas
 │   │   ├── PodcastSection.tsx                # Podcast
-│   │   └── VideosSection.tsx                 # Videos
+│   │   ├── VideosSection.tsx                 # Videos
+│   │   └── AchievementsSection.tsx           # Logros y Trayectoria (NUEVO)
 │   └── ui/                                   # Componentes UI reutilizables
 ├── hooks/
 │   └── useAirtable.ts                        # Hook personalizado para Airtable

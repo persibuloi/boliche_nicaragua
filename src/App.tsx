@@ -13,6 +13,7 @@ import { HandicapCalculator } from './components/Sections/HandicapCalculator'
 import { ContactSection } from './components/Sections/ContactSection'
 import { PodcastSection } from './components/Sections/PodcastSection'
 import { TournamentsAirtableSection } from '@/components/Sections/TournamentsAirtableSection'
+import { AchievementsSection } from '@/components/Sections/AchievementsSection'
 import { AdminLogin } from '@/components/Admin/AdminLogin'
 import { AdminDashboard } from '@/components/Admin/AdminDashboard'
 import { Settings } from 'lucide-react'
@@ -69,6 +70,7 @@ function AppContent() {
         )}
         {currentSection === 'calculadora-handicap' && <HandicapCalculator />}
         {currentSection === 'simulador-boliche' && <BowlingSimulator />}
+        {currentSection === 'logros-trayectoria' && <AchievementsSection />}
         {currentSection === 'contacto' && <ContactSection />}
         {currentSection === 'podcast' && <PodcastSection />}
       </main>
