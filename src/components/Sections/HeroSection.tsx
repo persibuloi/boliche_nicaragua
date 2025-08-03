@@ -1,5 +1,5 @@
 import React from 'react'
-import { Play, Users, Trophy, Target, Camera, Calculator, Mic, Gamepad2 } from 'lucide-react'
+import { Play, Users, Trophy, Target, Camera, Calculator, Mic, Gamepad2, Sparkles } from 'lucide-react'
 
 interface HeroSectionProps {
   onSectionChange?: (section: string) => void
@@ -98,6 +98,24 @@ export function HeroSection({ onSectionChange }: HeroSectionProps) {
               </div>
               <h3 className="text-lg font-semibold mb-2">Calculadora</h3>
               <p className="text-gray-300 text-sm">Calcula tu handicap personalizado con parámetros ajustables</p>
+            </button>
+
+            <button 
+              onClick={() => onSectionChange?.('ia')}
+              className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-200 transform hover:scale-105 cursor-pointer relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center justify-center space-x-2">
+                  <span>Asistente IA</span>
+                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 text-xs px-2 py-1 rounded-full text-white font-bold animate-pulse">NUEVO</span>
+                </h3>
+                <p className="text-gray-300 text-sm">Chatbot inteligente con automatización por webhooks</p>
+                <p className="text-purple-300 text-xs mt-2 italic">Por Marco Vásquez - Especialista en IA</p>
+              </div>
             </button>
 
             <button 

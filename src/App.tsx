@@ -40,6 +40,7 @@ function AppContent() {
       '/simulador-boliche': 'simulador-boliche',
       '/logros-trayectoria': 'logros-trayectoria',
       '/analisis': 'analisis',
+      '/ia': 'ia',
       '/contacto': 'contacto',
       '/podcast': 'podcast'
     }
@@ -57,6 +58,7 @@ function AppContent() {
       'simulador-boliche': '/simulador-boliche',
       'logros-trayectoria': '/logros-trayectoria',
       'analisis': '/analisis',
+      'ia': '/ia',
       'contacto': '/contacto',
       'podcast': '/podcast'
     }
