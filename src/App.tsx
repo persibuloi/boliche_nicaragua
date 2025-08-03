@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { AdminProvider, useAdmin } from '@/contexts/AdminContext'
 import { Header } from '@/components/Layout/Header'
 import { Footer } from '@/components/Layout/Footer'
@@ -8,6 +9,7 @@ import { StatsSection } from '@/components/Sections/StatsSection'
 import { StatsMenu } from './components/Sections/StatsMenu'
 import { StatsMenuSection } from './components/Sections/StatsMenuSection'
 import { AnalysisSection } from './components/Sections/AnalysisSection'
+import AIChatSection from './components/Sections/AIChatSection'
 import { BowlingSimulator } from './components/Sections/BowlingSimulator'
 import { HandicapCalculator } from './components/Sections/HandicapCalculator'
 import { ContactSection } from './components/Sections/ContactSection'
@@ -20,13 +22,46 @@ import { Settings } from 'lucide-react'
 import './App.css'
 
 function AppContent() {
-  const [currentSection, setCurrentSection] = useState('inicio')
   const [showAdmin, setShowAdmin] = useState(false)
   const { isAdmin, loading } = useAdmin()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Map URL paths to section names for header
+  const getCurrentSection = () => {
+    const path = location.pathname
+    const sectionMap: { [key: string]: string } = {
+      '/': 'inicio',
+      '/videos': 'videos',
+      '/torneos': 'torneos',
+      '/estadisticas': 'estadisticas',
+      '/menu-estadisticas': 'menu-estadisticas',
+      '/calculadora-handicap': 'calculadora-handicap',
+      '/simulador-boliche': 'simulador-boliche',
+      '/logros-trayectoria': 'logros-trayectoria',
+      '/analisis': 'analisis',
+      '/contacto': 'contacto',
+      '/podcast': 'podcast'
+    }
+    return sectionMap[path] || 'inicio'
+  }
 
   const handleSectionChange = (section: string) => {
-    console.log(`Cambiando sección de '${currentSection}' a '${section}'`)
-    setCurrentSection(section)
+    const routeMap: { [key: string]: string } = {
+      'inicio': '/',
+      'videos': '/videos',
+      'torneos': '/torneos',
+      'estadisticas': '/estadisticas',
+      'menu-estadisticas': '/menu-estadisticas',
+      'calculadora-handicap': '/calculadora-handicap',
+      'simulador-boliche': '/simulador-boliche',
+      'logros-trayectoria': '/logros-trayectoria',
+      'analisis': '/analisis',
+      'contacto': '/contacto',
+      'podcast': '/podcast'
+    }
+    const route = routeMap[section] || '/'
+    navigate(route)
   }
 
   // Handle admin access
@@ -46,7 +81,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <Header currentSection={currentSection} onSectionChange={handleSectionChange} />
+      <Header currentSection={getCurrentSection()} onSectionChange={handleSectionChange} />
       
       {/* Admin Access Button */}
       <button
@@ -59,20 +94,24 @@ function AppContent() {
 
       {/* Main Content */}
       <main className="flex-1">
-        {currentSection === 'inicio' && <HeroSection onSectionChange={handleSectionChange} />}
-        {currentSection === 'videos' && <VideosSection />}
-        {currentSection === 'torneos' && <TournamentsAirtableSection />}
-        {currentSection === 'estadisticas' && <StatsMenuSection />}
-        {currentSection === 'menu-estadisticas' && (
-          <div className="min-h-screen bg-gradient-to-br from-bowling-blue-50 to-bowling-orange-50">
-            <StatsMenu />
-          </div>
-        )}
-        {currentSection === 'calculadora-handicap' && <HandicapCalculator />}
-        {currentSection === 'simulador-boliche' && <BowlingSimulator />}
-        {currentSection === 'logros-trayectoria' && <AchievementsSection />}
-        {currentSection === 'contacto' && <ContactSection />}
-        {currentSection === 'podcast' && <PodcastSection />}
+        <Routes>
+          <Route path="/" element={<HeroSection onSectionChange={handleSectionChange} />} />
+          <Route path="/videos" element={<VideosSection />} />
+          <Route path="/torneos" element={<TournamentsAirtableSection />} />
+          <Route path="/estadisticas" element={<StatsMenuSection />} />
+          <Route path="/menu-estadisticas" element={
+            <div className="min-h-screen bg-gradient-to-br from-bowling-blue-50 to-bowling-orange-50">
+              <StatsMenu />
+            </div>
+          } />
+          <Route path="/calculadora-handicap" element={<HandicapCalculator />} />
+          <Route path="/simulador-boliche" element={<BowlingSimulator />} />
+          <Route path="/logros-trayectoria" element={<AchievementsSection />} />
+          <Route path="/analisis" element={<AnalysisSection />} />
+          <Route path="/ia" element={<AIChatSection />} />
+          <Route path="/contacto" element={<ContactSection />} />
+          <Route path="/podcast" element={<PodcastSection />} />
+        </Routes>
       </main>
 
       {/* Footer */}
@@ -83,9 +122,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AdminProvider>
-      <AppContent />
-    </AdminProvider>
+    <Router>
+      <AdminProvider>
+        <AppContent />
+      </AdminProvider>
+    </Router>
   )
 }
 

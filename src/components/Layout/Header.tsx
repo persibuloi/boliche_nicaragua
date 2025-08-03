@@ -17,7 +17,9 @@ import {
   ChevronDown,
   Target,
   Wrench,
-  Award
+  Award,
+  Bot,
+  Sparkles
 } from 'lucide-react'
 
 interface HeaderProps {
@@ -65,8 +67,15 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
       type: 'dropdown' as const,
       items: [
         { id: 'videos', label: 'Videos', icon: Play },
-        { id: 'podcast', label: 'Podcast', icon: Mic }
+        { id: 'podcast', label: 'Podcast', icon: Mic },
+        { id: 'analisis', label: 'Análisis PDFs', icon: FileText }
       ]
+    },
+    { 
+      id: 'ia', 
+      label: 'IA', 
+      icon: Sparkles, 
+      type: 'single' as const
     },
     { 
       id: 'contacto', 
@@ -133,7 +142,15 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
                   <button
                     key={item.id}
                     onClick={() => handleSectionClick(item.id)}
-                    className={`group flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSectionClick(item.id)
+                      }
+                    }}
+                    aria-label={`Navegar a ${item.label}`}
+                    aria-current={currentSection === item.id ? 'page' : undefined}
+                    className={`group flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-bowling-orange-500 focus:ring-offset-2 focus:ring-offset-bowling-black-900 ${
                       currentSection === item.id
                         ? 'bg-gradient-to-r from-bowling-orange-500 to-bowling-orange-600 text-white shadow-lg shadow-bowling-orange-500/25'
                         : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-bowling-blue-500/20 hover:to-bowling-orange-500/20 hover:shadow-md'
@@ -152,7 +169,18 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
                 <div key={item.id} className="relative">
                   <button
                     onClick={(e) => toggleDropdown(item.id, e)}
-                    className={`group flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setActiveDropdown(activeDropdown === item.id ? null : item.id)
+                      } else if (e.key === 'Escape' && activeDropdown === item.id) {
+                        setActiveDropdown(null)
+                      }
+                    }}
+                    aria-label={`${item.label} - ${activeDropdown === item.id ? 'Cerrar' : 'Abrir'} menú`}
+                    aria-expanded={activeDropdown === item.id}
+                    aria-haspopup="menu"
+                    className={`group flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-bowling-orange-500 focus:ring-offset-2 focus:ring-offset-bowling-black-900 ${
                       isCurrentSectionInGroup(item.items || []) || activeDropdown === item.id
                         ? 'bg-gradient-to-r from-bowling-orange-500 to-bowling-orange-600 text-white shadow-lg shadow-bowling-orange-500/25'
                         : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-bowling-blue-500/20 hover:to-bowling-orange-500/20 hover:shadow-md'
@@ -170,6 +198,8 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
                   {/* Dropdown Menu */}
                   {activeDropdown === item.id && (
                     <div 
+                      role="menu"
+                      aria-labelledby={`dropdown-${item.id}`}
                       className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2"
                       style={{ zIndex: 9999 }}
                       onClick={(e) => e.stopPropagation()}
@@ -180,7 +210,18 @@ export function Header({ currentSection, onSectionChange }: HeaderProps) {
                           <button
                             key={subItem.id}
                             onClick={() => handleSectionClick(subItem.id)}
-                            className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-gray-50 ${
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                handleSectionClick(subItem.id)
+                              } else if (e.key === 'Escape') {
+                                setActiveDropdown(null)
+                              }
+                            }}
+                            role="menuitem"
+                            aria-label={`Navegar a ${subItem.label}`}
+                            aria-current={currentSection === subItem.id ? 'page' : undefined}
+                            className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-bowling-orange-500 focus:ring-inset ${
                               currentSection === subItem.id
                                 ? 'bg-bowling-orange-50 text-bowling-orange-600 border-r-2 border-bowling-orange-500'
                                 : 'text-gray-700 hover:text-bowling-orange-600'

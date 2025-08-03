@@ -1,6 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Send, MapPin, Mail, Phone, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { Send, MapPin, Mail, Phone, Clock, CheckCircle, AlertCircle, Shield } from 'lucide-react'
+import { validateFormData, generateCSRFToken, validateCSRFToken, checkRateLimit } from '@/utils/security'
+
+interface FormErrors {
+  name?: string
+  email?: string
+  phone?: string
+  message?: string
+}
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
@@ -10,26 +18,138 @@ export function ContactSection() {
     message: '',
     formType: 'general'
   })
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [csrfToken, setCsrfToken] = useState<string>('')
   const [submitStatus, setSubmitStatus] = useState<{
-    type: 'success' | 'error' | null
+    type: 'success' | 'error' | 'security' | null
     message: string
   }>({ type: null, message: '' })
 
+  // Generar token CSRF al montar el componente
+  useEffect(() => {
+    const token = generateCSRFToken()
+    setCsrfToken(token)
+    // Almacenar en sessionStorage para validación
+    sessionStorage.setItem('csrf_token', token)
+  }, [])
+
+  // Validation functions
+  const validateEmail = (email: string): string | undefined => {
+    if (!email) return 'El email es obligatorio'
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) return 'Ingresa un email válido'
+    return undefined
+  }
+
+  const validateName = (name: string): string | undefined => {
+    if (!name) return 'El nombre es obligatorio'
+    if (name.length < 2) return 'El nombre debe tener al menos 2 caracteres'
+    if (name.length > 50) return 'El nombre no puede exceder 50 caracteres'
+    return undefined
+  }
+
+  const validatePhone = (phone: string): string | undefined => {
+    if (phone && phone.length > 0) {
+      const phoneRegex = /^[+]?[0-9\s\-()]{8,15}$/
+      if (!phoneRegex.test(phone)) return 'Ingresa un número de teléfono válido'
+    }
+    return undefined
+  }
+
+  const validateMessage = (message: string): string | undefined => {
+    if (!message) return 'El mensaje es obligatorio'
+    if (message.length < 10) return 'El mensaje debe tener al menos 10 caracteres'
+    if (message.length > 1000) return 'El mensaje no puede exceder 1000 caracteres'
+    return undefined
+  }
+
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case 'name': return validateName(value)
+      case 'email': return validateEmail(value)
+      case 'phone': return validatePhone(value)
+      case 'message': return validateMessage(value)
+      default: return undefined
+    }
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     })
+
+    // Real-time validation
+    if (touched[name]) {
+      const error = validateField(name, value)
+      setErrors(prev => ({
+        ...prev,
+        [name]: error
+      }))
+    }
+
+    // Clear submit status when user starts typing
+    if (submitStatus.type) {
+      setSubmitStatus({ type: null, message: '' })
+    }
+  }
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    
+    setTouched(prev => ({ ...prev, [name]: true }))
+    
+    const error = validateField(name, value)
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.name || !formData.email || !formData.message) {
+    // Verificar rate limiting
+    const userIdentifier = `${formData.email}_${Date.now().toString().slice(0, -5)}` // 5 min window
+    if (!checkRateLimit(userIdentifier, 3, 15 * 60 * 1000)) { // 3 requests per 15 minutes
+      setSubmitStatus({
+        type: 'security',
+        message: 'Demasiadas solicitudes. Por favor, espera 15 minutos antes de intentar nuevamente.'
+      })
+      return
+    }
+
+    // Validar token CSRF
+    const storedToken = sessionStorage.getItem('csrf_token')
+    if (!validateCSRFToken(csrfToken, storedToken || '')) {
+      setSubmitStatus({
+        type: 'security',
+        message: 'Error de seguridad. Por favor, recarga la página e intenta nuevamente.'
+      })
+      return
+    }
+
+    // Mark all fields as touched
+    const allTouched = {
+      name: true,
+      email: true,
+      phone: true,
+      message: true
+    }
+    setTouched(allTouched)
+
+    // Validación del lado del servidor
+    const serverValidation = validateFormData(formData)
+    
+    if (!serverValidation.isValid) {
+      setErrors(serverValidation.errors as FormErrors)
       setSubmitStatus({
         type: 'error',
-        message: 'Por favor, completa todos los campos obligatorios.'
+        message: 'Por favor, corrige los errores antes de enviar el formulario.'
       })
       return
     }
@@ -38,8 +158,13 @@ export function ContactSection() {
     setSubmitStatus({ type: null, message: '' })
 
     try {
+      // Usar datos sanitizados del servidor
       const { data, error } = await supabase.functions.invoke('contact-form-submit', {
-        body: formData
+        body: {
+          ...serverValidation.sanitizedData,
+          csrfToken,
+          timestamp: Date.now()
+        }
       })
 
       if (error) throw error
@@ -57,6 +182,15 @@ export function ContactSection() {
         message: '',
         formType: 'general'
       })
+      
+      // Reset validation states
+      setErrors({})
+      setTouched({})
+      
+      // Generar nuevo token CSRF
+      const newToken = generateCSRFToken()
+      setCsrfToken(newToken)
+      sessionStorage.setItem('csrf_token', newToken)
     } catch (error) {
       console.error('Contact form error:', error)
       setSubmitStatus({
@@ -88,15 +222,19 @@ export function ContactSection() {
             {submitStatus.type && (
               <div className={`p-4 rounded-lg mb-6 flex items-center ${
                 submitStatus.type === 'success' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                  : submitStatus.type === 'security'
+                  ? 'bg-orange-100 text-orange-800 border border-orange-200'
+                  : 'bg-red-100 text-red-800 border border-red-200'
               }`}>
                 {submitStatus.type === 'success' ? (
-                  <CheckCircle className="w-5 h-5 mr-2" />
+                  <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+                ) : submitStatus.type === 'security' ? (
+                  <Shield className="w-5 h-5 mr-2 flex-shrink-0" />
                 ) : (
-                  <AlertCircle className="w-5 h-5 mr-2" />
+                  <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
                 )}
-                {submitStatus.message}
+                <span className="text-sm font-medium">{submitStatus.message}</span>
               </div>
             )}
 
@@ -112,14 +250,25 @@ export function ContactSection() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-orange-500 focus:border-transparent transition-colors"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent transition-colors ${
+                      errors.name && touched.name
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-bowling-orange-500'
+                    }`}
                     placeholder="Tu nombre completo"
                   />
+                  {errors.name && touched.name && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-bowling-black-700 mb-2">
-                    Correo electrónico *
+                    Email *
                   </label>
                   <input
                     type="email"
@@ -127,17 +276,28 @@ export function ContactSection() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-orange-500 focus:border-transparent transition-colors"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent transition-colors ${
+                      errors.email && touched.email
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-bowling-orange-500'
+                    }`}
                     placeholder="tu@email.com"
                   />
+                  {errors.email && touched.email && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-bowling-black-700 mb-2">
-                    Teléfono
+                    Teléfono (opcional)
                   </label>
                   <input
                     type="tel"
@@ -145,9 +305,20 @@ export function ContactSection() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-orange-500 focus:border-transparent transition-colors"
-                    placeholder="+505 xxxx-xxxx"
+                    onBlur={handleBlur}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent transition-colors ${
+                      errors.phone && touched.phone
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-bowling-orange-500'
+                    }`}
+                    placeholder="+505 1234-5678"
                   />
+                  {errors.phone && touched.phone && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.phone}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="formType" className="block text-sm font-medium text-bowling-black-700 mb-2">
@@ -170,18 +341,33 @@ export function ContactSection() {
 
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-bowling-black-700 mb-2">
-                  Mensaje *
+                  Mensaje * 
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({formData.message.length}/1000 caracteres)
+                  </span>
                 </label>
                 <textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
                   required
                   rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bowling-orange-500 focus:border-transparent transition-colors resize-none"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent transition-colors resize-none ${
+                    errors.message && touched.message
+                      ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                      : 'border-gray-300 focus:ring-bowling-orange-500'
+                  }`}
                   placeholder="Cuéntanos en qué podemos ayudarte..."
+                  maxLength={1000}
                 ></textarea>
+                {errors.message && touched.message && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    {errors.message}
+                  </p>
+                )}
               </div>
 
               <button

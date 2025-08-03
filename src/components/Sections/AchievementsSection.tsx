@@ -71,17 +71,74 @@ export function AchievementsSection() {
   
   // Procesar datos de trayectoria
   const trayectoriaActiva = (trayectoria || []).filter((evento: any) => evento.fields?.activo)
-  const eventosPorAno = trayectoriaActiva
-    .sort((a: any, b: any) => (a.fields?.orden_cronologico || 0) - (b.fields?.orden_cronologico || 0))
-    .reduce((acc: any, evento: any) => {
-      const ano = evento.fields?.ano
-      if (!acc[ano]) {
-        acc[ano] = []
-      }
-      acc[ano].push(evento)
-      return acc
-    }, {})
   
+  // DEBUG: Verificar qué campos están llegando desde Airtable
+  console.log('=== DEBUG TRAYECTORIA_HISTORIA ===')
+  console.log('Total eventos:', trayectoriaActiva.length)
+  if (trayectoriaActiva.length > 0) {
+    console.log('Primer evento completo:', trayectoriaActiva[0])
+    console.log('Campos disponibles:', Object.keys(trayectoriaActiva[0].fields || {}))
+    console.log('fecha_inicio:', trayectoriaActiva[0].fields?.fecha_inicio)
+    console.log('fecha_fin:', trayectoriaActiva[0].fields?.fecha_fin)
+    console.log('nombre_torneo:', trayectoriaActiva[0].fields?.nombre_torneo)
+    console.log('participantes:', trayectoriaActiva[0].fields?.participantes)
+  }
+  console.log('===================================')
+
+  // Función para formatear rango de fechas
+  const formatearRangoFechas = (fechaInicio: string, fechaFin?: string) => {
+    if (!fechaInicio) return 'Fecha no especificada'
+    
+    const inicio = new Date(fechaInicio)
+    const fin = fechaFin ? new Date(fechaFin) : null
+    
+    const opciones: Intl.DateTimeFormatOptions = { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    }
+    
+    if (!fin || inicio.getTime() === fin.getTime()) {
+      return inicio.toLocaleDateString('es-ES', opciones)
+    }
+    
+    // Si es el mismo mes y año, mostrar "15-17 Marzo 2024"
+    if (inicio.getMonth() === fin.getMonth() && inicio.getFullYear() === fin.getFullYear()) {
+      return `${inicio.getDate()}-${fin.getDate()} ${inicio.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`
+    }
+    
+    // Si es el mismo año, mostrar "15 Marzo - 2 Abril 2024"
+    if (inicio.getFullYear() === fin.getFullYear()) {
+      return `${inicio.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} - ${fin.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    }
+    
+    // Fechas en años diferentes
+    return `${inicio.toLocaleDateString('es-ES', opciones)} - ${fin.toLocaleDateString('es-ES', opciones)}`
+  }
+
+  // Agrupar eventos por período (año-mes para mejor organización)
+  const eventosPorPeriodo: { [key: string]: any[] } = {}
+  if (trayectoria) {
+    trayectoria.forEach((evento: any) => {
+      let periodo: string
+      
+      if (evento.fields?.fecha_inicio) {
+        // Si tiene fecha_inicio, usar esa fecha
+        const fecha = new Date(evento.fields.fecha_inicio)
+        periodo = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`
+      } else {
+        // Si no tiene fecha_inicio, usar solo el año (mes 01 por defecto)
+        const ano = evento.fields?.ano || '2024'
+        periodo = `${ano}-01`
+      }
+      
+      if (!eventosPorPeriodo[periodo]) {
+        eventosPorPeriodo[periodo] = []
+      }
+      eventosPorPeriodo[periodo].push(evento)
+    })
+  }
+
   // Función para obtener ícono según tipo de evento
   const getTipoEventoIcon = (tipo: string) => {
     switch (tipo) {
@@ -259,7 +316,7 @@ export function AchievementsSection() {
                     
                     {/* Foto del momento si existe */}
                     {fotoMomento && (
-                      <div className="relative h-40 sm:h-48 overflow-hidden">
+                      <div className="relative h-48 sm:h-56 overflow-hidden">
                         <img 
                           src={fotoMomento} 
                           alt={`Momento del juego perfecto de ${logro.fields?.jugador_nombre}`}
@@ -332,7 +389,7 @@ export function AchievementsSection() {
                   
                   {/* Foto del momento si existe */}
                   {fotoMomento && (
-                    <div className="relative h-28 sm:h-32 overflow-hidden">
+                    <div className="relative h-40 sm:h-44 overflow-hidden">
                       <img 
                         src={fotoMomento} 
                         alt={`Momento del logro de ${logro.fields?.jugador_nombre}`}
@@ -402,95 +459,109 @@ export function AchievementsSection() {
               <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">Error al cargar la trayectoria</p>
             </div>
-          ) : Object.keys(eventosPorAno).length === 0 ? (
+          ) : Object.keys(eventosPorPeriodo).length === 0 ? (
             <div className="text-center py-8">
               <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">No hay eventos de trayectoria disponibles</p>
             </div>
           ) : (
             <div className="max-w-4xl mx-auto">
-              {Object.keys(eventosPorAno)
-                .sort((a, b) => parseInt(a) - parseInt(b))
-                .map((ano, index, array) => {
-                  const eventos = eventosPorAno[ano]
+              {Object.keys(eventosPorPeriodo)
+                .sort((a, b) => a.localeCompare(b))
+                .map((periodo, index, array) => {
+                  const eventos = eventosPorPeriodo[periodo]
+                  const [ano, mes] = periodo.split('-')
+                  
                   return (
-                    <div key={ano} className="relative">
+                    <div key={periodo} className="relative">
                       {/* Línea vertical */}
                       {index < array.length - 1 && (
                         <div className="absolute left-8 top-20 w-0.5 h-full bg-gradient-to-b from-bowling-orange-300 to-transparent"></div>
                       )}
                       
                       <div className="flex items-start space-x-4 sm:space-x-6 mb-8 sm:mb-12">
-                        {/* Año */}
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-bowling-orange-500 to-bowling-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg flex-shrink-0 z-10">
-                          {ano}
+                        {/* Período */}
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-bowling-orange-500 to-bowling-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-lg flex-shrink-0 z-10">
+                          <div className="text-center">
+                            <div className="text-xs sm:text-sm">{mes}</div>
+                            <div className="text-xs">{ano}</div>
+                          </div>
                         </div>
                         
-                        {/* Eventos del año */}
-                        <div className="flex-1 space-y-3 sm:space-y-4">
-                          {eventos.map((evento: any, eventoIndex: number) => {
-                            const IconComponent = getTipoEventoIcon(evento.fields?.tipo_evento)
-                            const colorClass = getImpactoColor(evento.fields?.impacto)
+                        {/* Eventos del período */}
+                        <div className="flex-1">
+                          {eventos.map((evento: any) => {
+                            const fechaInicio = evento.fields?.fecha_inicio
+                            const fechaFin = evento.fields?.fecha_fin
+                            const nombreTorneo = evento.fields?.nombre_torneo || evento.fields?.titulo
                             const fotoEvento = evento.fields?.foto_evento?.[0]?.url
                             
                             return (
-                              <div key={evento.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
-                                <div className={`h-1 bg-gradient-to-r ${colorClass}`}></div>
-                                
+                              <div key={evento.id} className="bg-white rounded-xl shadow-lg overflow-hidden mb-6 hover:shadow-xl transition-shadow duration-300">
                                 {/* Foto del evento si existe */}
                                 {fotoEvento && (
-                                  <div className="relative h-40 sm:h-48 overflow-hidden">
+                                  <div className="h-48 sm:h-56 overflow-hidden">
                                     <img 
                                       src={fotoEvento} 
-                                      alt={evento.fields?.titulo}
-                                      className="w-full h-full object-cover"
+                                      alt={nombreTorneo || 'Evento de la historia'}
+                                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                     />
-                                    <div className={`absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-r ${colorClass} text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold`}>
-                                      {evento.fields?.tipo_evento}
-                                    </div>
-                                    <div className={`absolute top-2 right-2 sm:top-3 sm:right-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs`}>
-                                      {evento.fields?.impacto} Impacto
-                                    </div>
                                   </div>
                                 )}
                                 
                                 <div className="p-4 sm:p-6">
-                                  <div className="flex items-start space-x-3 sm:space-x-4">
-                                    {/* Ícono del tipo de evento */}
-                                    <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r ${colorClass} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="text-bowling-orange-600">
+                                        {React.createElement(getTipoEventoIcon(evento.fields?.tipo_evento), { className: "w-4 h-4" })}
+                                      </div>
+                                      <span className="text-sm text-bowling-orange-600 font-medium">
+                                        {evento.fields?.tipo_evento || 'Evento'}
+                                      </span>
                                     </div>
                                     
-                                    <div className="flex-1 min-w-0">
-                                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
-                                        {evento.fields?.titulo}
-                                      </h3>
-                                      <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 leading-relaxed">
-                                        {evento.fields?.descripcion}
-                                      </p>
-                                      
-                                      {/* Participantes clave si existen */}
-                                      {evento.fields?.participantes_clave && (
-                                        <div className="mb-3">
-                                          <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-1">Participantes Clave:</h4>
-                                          <p className="text-xs sm:text-sm text-gray-600">{evento.fields?.participantes_clave}</p>
-                                        </div>
-                                      )}
-                                      
-                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm text-gray-500">
-                                        <span className="flex items-center space-x-1">
-                                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                                          <span className="truncate">{evento.fields?.tipo_evento}</span>
-                                        </span>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium self-start sm:self-auto ${
-                                          evento.fields?.impacto === 'Alto' ? 'bg-red-100 text-red-800' :
-                                          evento.fields?.impacto === 'Medio' ? 'bg-yellow-100 text-yellow-800' :
-                                          'bg-green-100 text-green-800'
-                                        }`}>
-                                          Impacto {evento.fields?.impacto}
+                                    {/* Rango de fechas */}
+                                    {fechaInicio && (
+                                      <div className="bg-bowling-orange-50 px-3 py-1 rounded-full">
+                                        <span className="text-xs sm:text-sm text-bowling-orange-700 font-medium">
+                                          {formatearRangoFechas(fechaInicio, fechaFin)}
                                         </span>
                                       </div>
-                                    </div>
+                                    )}
+                                  </div>
+                                  
+                                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                                    {nombreTorneo}
+                                  </h3>
+                                  
+                                  <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-3">
+                                    {evento.fields?.descripcion}
+                                  </p>
+                                  
+                                  <div className="flex flex-wrap gap-2 text-sm text-gray-500">
+                                    {evento.fields?.ubicacion && (
+                                      <div className="flex items-center space-x-1">
+                                        <MapPin className="w-4 h-4" />
+                                        <span>{evento.fields.ubicacion}</span>
+                                      </div>
+                                    )}
+                                    
+                                    {evento.fields?.participantes && (
+                                      <div className="flex items-center space-x-1">
+                                        <Users className="w-4 h-4" />
+                                        <span>{evento.fields.participantes} participantes</span>
+                                      </div>
+                                    )}
+                                    
+                                    {evento.fields?.impacto && (
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        evento.fields.impacto === 'Alto' ? 'bg-red-100 text-red-800' :
+                                        evento.fields.impacto === 'Medio' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-green-100 text-green-800'
+                                      }`}>
+                                        Impacto {evento.fields.impacto}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               </div>
