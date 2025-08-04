@@ -5,9 +5,6 @@ import {
   User, 
   Loader2, 
   MessageCircle,
-  Sparkles,
-  Database,
-  TrendingUp,
   Trophy,
   Target
 } from 'lucide-react'
@@ -24,7 +21,14 @@ const AIChatSection: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: '¡Hola! Soy el asistente IA de Boliche Nicaragua 🎳. Puedo ayudarte con estadísticas, información de jugadores, torneos y mucho más. ¿En qué puedo ayudarte?',
+      content: `¡Hola! Soy el asistente IA de Boliche Nicaragua 🎳. Estoy conectado en tiempo real con la base de datos y puedo ayudarte con:
+
+📊 **Estadísticas en tiempo real** - Promedios, puntajes, análisis
+🏆 **Información de torneos** - Próximos eventos y resultados
+👥 **Datos de jugadores** - Perfiles, logros y rendimiento
+🎯 **Análisis inteligente** - Tendencias y comparaciones
+
+¿Sobre qué te gustaría saber?`,
       sender: 'ai',
       timestamp: new Date(),
       type: 'text'
@@ -33,6 +37,7 @@ const AIChatSection: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isConnected, setIsConnected] = useState(true)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -40,16 +45,28 @@ const AIChatSection: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  // Scroll inicial hacia la parte superior al cargar el componente
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+
+
+  // Solo hacer scroll automático cuando se envían nuevos mensajes, no al cargar inicialmente
+  useEffect(() => {
+    if (shouldAutoScroll) {
+      scrollToBottom()
+      setShouldAutoScroll(false)
+    }
+  }, [messages, shouldAutoScroll])
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return
 
+    const messageToSend = inputMessage // Guardar el mensaje antes de limpiar el input
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage,
+      content: messageToSend,
       sender: 'user',
       timestamp: new Date(),
       type: 'text'
@@ -58,13 +75,90 @@ const AIChatSection: React.FC = () => {
     setMessages(prev => [...prev, userMessage])
     setInputMessage('')
     setIsTyping(true)
+    setShouldAutoScroll(true) // Activar scroll automático para nuevos mensajes
 
-    // Simular respuesta de IA (aquí se conectaría al webhook)
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(inputMessage)
-      setMessages(prev => [...prev, aiResponse])
+    try {
+      // Integrar con webhook de n8n para respuestas IA reales
+      const response = await fetch('https://n8n-n8n.wppjp8.easypanel.host/webhook/2a6039b5-257f-4074-99db-be556859fd62', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageToSend,
+          timestamp: new Date().toISOString(),
+          source: 'boliche-nicaragua-chat'
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Webhook response:', data) // Log para debugging
+        
+        // Procesar diferentes formatos de respuesta del webhook
+        let responseContent = ''
+        
+        if (data.respond) {
+          responseContent = data.respond
+        } else if (data.response) {
+          responseContent = data.response
+        } else if (data.message) {
+          responseContent = data.message
+        } else if (data.text) {
+          responseContent = data.text
+        } else if (data.content) {
+          responseContent = data.content
+        } else if (data.answer) {
+          responseContent = data.answer
+        } else if (typeof data === 'string') {
+          responseContent = data
+        } else {
+          responseContent = 'Respuesta recibida del sistema IA.'
+        }
+        
+        const aiResponse: Message = {
+          id: Date.now().toString(),
+          content: responseContent,
+          sender: 'ai',
+          timestamp: new Date(),
+          type: data.type || data.messageType || 'text'
+        }
+        setMessages(prev => [...prev, aiResponse])
+      } else {
+        console.error('Webhook response error:', response.status, response.statusText)
+        // Intentar leer el error del response
+        try {
+          const errorData = await response.text()
+          console.error('Webhook error details:', errorData)
+        } catch (e) {
+          console.error('Could not read error response:', e)
+        }
+        
+        // Fallback en caso de error del webhook
+        const fallbackResponse = generateAIResponse(messageToSend)
+        setMessages(prev => [...prev, fallbackResponse])
+      }
+    } catch (error) {
+      console.error('Error conectando con webhook:', error)
+      console.error('Error details:', {
+        message: messageToSend,
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      
+      // Fallback en caso de error de conexión
+      const fallbackResponse: Message = {
+        id: Date.now().toString(),
+        content: 'Disculpa, hay un problema temporal con la conexión. Por favor intenta nuevamente en unos momentos.',
+        sender: 'ai',
+        timestamp: new Date(),
+        type: 'text'
+      }
+      setMessages(prev => [...prev, fallbackResponse])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+      setShouldAutoScroll(true) // Activar scroll automático para respuesta IA
+    }
   }
 
   const generateAIResponse = (userInput: string): Message => {
@@ -116,19 +210,24 @@ const AIChatSection: React.FC = () => {
     }
   }
 
+  // Manejar cambios en el input sin interferir con el scroll manual
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputMessage(e.target.value)
+  }
+
   const getMessageIcon = (type?: string) => {
     switch (type) {
-      case 'stats': return <TrendingUp className="w-4 h-4 text-blue-500" />
-      case 'data': return <Database className="w-4 h-4 text-green-500" />
-      default: return <Sparkles className="w-4 h-4 text-purple-500" />
+      case 'stats': return <Trophy className="w-4 h-4 text-blue-500" />
+      case 'data': return <Target className="w-4 h-4 text-green-500" />
+      default: return <MessageCircle className="w-4 h-4 text-purple-500" />
     }
   }
 
   const quickActions = [
-    { label: 'Ver Estadísticas', icon: TrendingUp, query: 'Muéstrame las estadísticas generales' },
-    { label: 'Próximos Torneos', icon: Trophy, query: 'Información sobre próximos torneos' },
-    { label: 'Top Jugadores', icon: Target, query: 'Quiénes son los mejores jugadores' },
-    { label: 'Juegos Perfectos', icon: Sparkles, query: 'Información sobre juegos perfectos' }
+    { label: 'Ver Estadísticas', icon: Trophy, query: 'Muéstrame las estadísticas generales' },
+    { label: 'Próximos Torneos', icon: Target, query: 'Información sobre próximos torneos' },
+    { label: 'Top Jugadores', icon: User, query: 'Quiénes son los mejores jugadores' },
+    { label: 'Juegos Perfectos', icon: MessageCircle, query: 'Información sobre juegos perfectos' }
   ]
 
   const handleQuickAction = (query: string) => {
@@ -263,7 +362,7 @@ const AIChatSection: React.FC = () => {
                 ref={inputRef}
                 type="text"
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 placeholder="Escribe tu pregunta aquí..."
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -286,32 +385,7 @@ const AIChatSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Features Info */}
-        <div className="max-w-4xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <Database className="w-12 h-12 mx-auto mb-4 text-blue-500" />
-            <h3 className="text-lg font-semibold mb-2">Base de Datos</h3>
-            <p className="text-gray-600 text-sm">
-              Conectado directamente a Airtable para información en tiempo real
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <Sparkles className="w-12 h-12 mx-auto mb-4 text-purple-500" />
-            <h3 className="text-lg font-semibold mb-2">IA Avanzada</h3>
-            <p className="text-gray-600 text-sm">
-              Automatización con agentes inteligentes vía webhook
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <TrendingUp className="w-12 h-12 mx-auto mb-4 text-green-500" />
-            <h3 className="text-lg font-semibold mb-2">Análisis</h3>
-            <p className="text-gray-600 text-sm">
-              Estadísticas y análisis inteligente de rendimiento
-            </p>
-          </div>
-        </div>
+
       </div>
     </div>
   )
