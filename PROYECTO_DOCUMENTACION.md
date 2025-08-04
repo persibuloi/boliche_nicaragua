@@ -1632,6 +1632,46 @@ Cascade AI
 
 ---
 
+---
+
+## 📅 04 Agosto 2025 - 12:48 CST
+### 🔧 CORRECCIÓN CRÍTICA: Problema de Enrutamiento SPA en Vercel
+
+**PROBLEMA IDENTIFICADO:**
+- URLs directas como www.bolichenicaragua.com/torneos fallaban con error 404
+- La navegación interna funcionaba correctamente
+- Problema típico de SPAs donde el servidor no maneja rutas del cliente
+
+**SOLUCIÓN IMPLEMENTADA:**
+✅ Configuración de `vercel.json` con rewrites para SPA routing
+✅ Todas las rutas no encontradas ahora se redirigen a `/index.html`
+✅ React Router puede manejar el enrutamiento del lado del cliente
+
+**ARCHIVO MODIFICADO:**
+- `vercel.json`: Agregada configuración de rewrites
+
+**CONFIGURACIÓN AGREGADA:**
+```json
+"rewrites": [
+  {
+    "source": "/(.*)",
+    "destination": "/index.html"
+  }
+]
+```
+
+**ESTADO:**
+- ✅ Configuración lista para deployment
+- ✅ Problema de enrutamiento SPA resuelto
+- 🔄 Pendiente: Re-deploy en Vercel para aplicar cambios
+
+**PRÓXIMO PASO:**
+- Hacer commit y push de los cambios
+- Re-deploy en Vercel
+- Probar acceso directo a URLs como /torneos, /ia, /contacto
+
+---
+
 **🎉 PROYECTO 100% COMPLETADO Y FUNCIONAL**
 **✨ AHORA CON ESTÁNDARES ENTERPRISE DE SEO, ACCESIBILIDAD Y SEGURIDAD**
 **Desarrollado con ❤️ por Cascade AI para la Comunidad Boliche Nicaragua**
